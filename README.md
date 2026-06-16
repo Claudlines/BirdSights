@@ -17,7 +17,7 @@ Users select a bird species, specify a location (manually or via GPS), choose a 
 
 ## MVP Features
 
-- Bird species autocomplete (10 demo species)
+- Bird species autocomplete (full eBird taxonomy when API key is configured; 10 demo species as fallback)
 - Manual location search (address, ZIP, city/state, landmark)
 - GPS / current location detection
 - Radius filtering: 5, 10, 25, 50 km
@@ -297,7 +297,7 @@ The UI labels these values clearly as "Returned" values, not "All Real-World" va
 - No user accounts or saved searches
 - No weather integration
 - No AI recommendations or migration forecasting
-- Species autocomplete uses a limited list of 10 demo species (not full eBird taxonomy)
+- Species autocomplete uses full eBird taxonomy (11 000+ species) when the API key is configured, and falls back to 10 demo species when the taxonomy is unavailable
 - eBird nearby species observations may already return only the most recent report per location
 - "Reports Returned At This Location" reflects only records returned by the eBird endpoint, not all real-world reports
 - "Number Observed In Latest Report" comes from eBird's `howMany` field and does not represent a total sighting count

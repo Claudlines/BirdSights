@@ -28,49 +28,56 @@ function MapController({ center, zoom }) {
   return null;
 }
 
-export default function MapView({ searchCenter, radiusKm, results, selectedId, onSelectReport }) {
+// MarkerLayer lives inside MapContainer so useMap() is always ready.
+// This avoids the timing issue where mapRef.current was null on first render.
+function MarkerLayer({ results, selectedId, onSelectReport }) {
+  const map = useMap();
   const markersRef = useRef({});
-  const mapRef = useRef(null);
+  // Keep a stable ref to the callback so marker click handlers never go stale
+  const onSelectRef = useRef(onSelectReport);
+  useEffect(() => { onSelectRef.current = onSelectReport; });
 
+  useEffect(() => {
+    Object.values(markersRef.current).forEach((m) => m.remove());
+    markersRef.current = {};
+
+    results.filter((r) => r.hasCoords).forEach((report) => {
+      const isSelected = report.id === selectedId;
+      const marker = L.marker([report.latitude, report.longitude], {
+        icon: createMarkerIcon(isSelected),
+        title: report.locationName,
+      }).addTo(map);
+
+      marker.on("click", () => {
+        onSelectRef.current(report);
+        map.setView([report.latitude, report.longitude], map.getZoom());
+      });
+
+      markersRef.current[report.id] = marker;
+    });
+
+    // Recalculate tile layout after the results panel changes the grid dimensions
+    setTimeout(() => map.invalidateSize(), 50);
+  }, [results, selectedId, map]);
+
+  // Pan map when a report is selected from the list
+  useEffect(() => {
+    if (!selectedId) return;
+    const report = results.find((r) => r.id === selectedId);
+    if (report?.hasCoords) {
+      map.setView([report.latitude, report.longitude], map.getZoom());
+    }
+  }, [selectedId, results, map]);
+
+  return null;
+}
+
+export default function MapView({ searchCenter, radiusKm, results, selectedId, onSelectReport }) {
   const center = searchCenter
     ? [searchCenter.lat, searchCenter.lng]
     : [39.5, -98.35];
 
   const zoom = searchCenter ? (radiusKm <= 10 ? 11 : radiusKm <= 25 ? 9 : 8) : 4;
-
-  useEffect(() => {
-    const validMarkers = results.filter((r) => r.hasCoords);
-
-    // Clean up old markers
-    Object.values(markersRef.current).forEach((m) => m.remove());
-    markersRef.current = {};
-
-    if (!mapRef.current) return;
-
-    validMarkers.forEach((report) => {
-      const isSelected = report.id === selectedId;
-      const marker = L.marker([report.latitude, report.longitude], {
-        icon: createMarkerIcon(isSelected),
-        title: report.locationName,
-      }).addTo(mapRef.current);
-
-      marker.on("click", () => {
-        onSelectReport(report);
-        mapRef.current.setView([report.latitude, report.longitude], mapRef.current.getZoom());
-      });
-
-      markersRef.current[report.id] = marker;
-    });
-  }, [results, selectedId, onSelectReport]);
-
-  // Pan to selected report
-  useEffect(() => {
-    if (!selectedId || !mapRef.current) return;
-    const report = results.find((r) => r.id === selectedId);
-    if (report?.hasCoords) {
-      mapRef.current.setView([report.latitude, report.longitude], mapRef.current.getZoom());
-    }
-  }, [selectedId, results]);
 
   return (
     <div className="map-container" style={{ height: "100%", minHeight: "400px" }}>
@@ -78,7 +85,6 @@ export default function MapView({ searchCenter, radiusKm, results, selectedId, o
         center={center}
         zoom={zoom}
         style={{ height: "100%", width: "100%" }}
-        ref={mapRef}
       >
         <MapController center={searchCenter ? [searchCenter.lat, searchCenter.lng] : null} zoom={zoom} />
         <TileLayer
@@ -92,6 +98,11 @@ export default function MapView({ searchCenter, radiusKm, results, selectedId, o
             pathOptions={{ color: "#1a73e8", fillColor: "#1a73e8", fillOpacity: 0.05, weight: 2 }}
           />
         )}
+        <MarkerLayer
+          results={results}
+          selectedId={selectedId}
+          onSelectReport={onSelectReport}
+        />
       </MapContainer>
     </div>
   );

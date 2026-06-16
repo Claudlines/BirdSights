@@ -2,8 +2,14 @@ const fetch = (...args) => import("node-fetch").then(({ default: f }) => f(...ar
 
 const cache = new Map();
 
+// Match exactly 5 digits (U.S. ZIP code format)
+function isUsZip(str) {
+  return /^\d{5}$/.test(str.trim());
+}
+
 async function geocodeLocation(locationString) {
-  const key = locationString.trim().toLowerCase();
+  const trimmed = locationString.trim();
+  const key = trimmed.toLowerCase();
 
   if (cache.has(key)) {
     return cache.get(key);
@@ -12,7 +18,20 @@ async function geocodeLocation(locationString) {
   const userAgent =
     process.env.NOMINATIM_USER_AGENT || "BirdsNearMe/1.0 student-capstone-project";
 
-  const params = new URLSearchParams({ q: locationString.trim(), format: "jsonv2", limit: "1" });
+  // For 5-digit ZIP codes use postalcode + countrycodes=us so Nominatim
+  // doesn't resolve them to non-US postal codes (e.g. Lithuanian postcodes).
+  let params;
+  if (isUsZip(trimmed)) {
+    params = new URLSearchParams({
+      postalcode: trimmed,
+      countrycodes: "us",
+      format: "jsonv2",
+      limit: "1",
+    });
+  } else {
+    params = new URLSearchParams({ q: trimmed, format: "jsonv2", limit: "1" });
+  }
+
   const url = `https://nominatim.openstreetmap.org/search?${params.toString()}`;
 
   let response;

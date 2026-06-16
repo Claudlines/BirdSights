@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const searchRoutes = require("./routes/searchRoutes");
+const speciesRoutes = require("./routes/speciesRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -22,6 +23,7 @@ app.get("/api/health", (_req, res) => {
 });
 
 app.use("/api", searchRoutes);
+app.use("/api", speciesRoutes);
 
 app.use((_req, res) => {
   res.status(404).json({ error: "Not found." });
