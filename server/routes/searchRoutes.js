@@ -2,25 +2,16 @@ const express = require("express");
 const router = express.Router();
 const { geocodeLocation } = require("../services/geocodingService");
 const { fetchRecentObservations } = require("../services/ebirdService");
-const { groupReports } = require("../utils/groupReports");
-const { sortReports } = require("../utils/sortReports");
 const { validateSearchParams } = require("../utils/validateSearchParams");
 
-const MAX_RESULTS = 10;
+const DEFAULT_BACK_DAYS = 7;
 
 router.get("/search", async (req, res) => {
-  const {
-    speciesCode,
-    location,
-    latitude,
-    longitude,
-    radiusKm,
-    showAllReports,
-    showAllSightings,
-  } = req.query;
+  const { speciesCode, location, latitude, longitude, radiusKm, backDays } = req.query;
 
-  const showAll =
-    showAllReports === "true" || showAllSightings === "true";
+  // Resolve backDays: default to 7 if not provided, validated below if provided
+  const resolvedBackDays =
+    backDays != null ? parseInt(backDays, 10) : DEFAULT_BACK_DAYS;
 
   const validationError = validateSearchParams({
     speciesCode,
@@ -28,6 +19,7 @@ router.get("/search", async (req, res) => {
     latitude,
     longitude,
     radiusKm,
+    backDays,
   });
 
   if (validationError) {
@@ -58,49 +50,25 @@ router.get("/search", async (req, res) => {
       lat: searchLat,
       lng: searchLng,
       radiusKm: parseInt(radiusKm, 10),
+      backDays: resolvedBackDays,
     });
   } catch (err) {
     const status = err.message.includes("not configured") ? 503 : 502;
     return res.status(status).json({ error: err.message });
   }
 
-  if (observations.length === 0) {
-    return res.json({
-      searchCenter: { lat: searchLat, lng: searchLng, label: locationLabel },
-      speciesCode,
-      radiusKm: parseInt(radiusKm, 10),
-      mode: showAll ? "individual" : "grouped",
-      results: [],
-      message:
-        "No recent eBird reports were found for this species within the selected radius. Try a larger radius or a different location.",
-    });
-  }
-
-  let results;
-  let mode;
-
-  if (showAll) {
-    results = sortReports(observations).slice(0, MAX_RESULTS).map((obs) => ({
-      ...obs,
-      reportCountAtLocation: 1,
-      additionalReturnedReports: 0,
-    }));
-    mode = "individual";
-  } else {
-    const grouped = groupReports(observations);
-    results = sortReports(grouped).slice(0, MAX_RESULTS);
-    mode = "grouped";
-  }
-
+  // Return all raw normalized observations — grouping, sorting, and pagination
+  // are handled client-side so the frontend can switch modes without re-fetching.
   return res.json({
     searchCenter: { lat: searchLat, lng: searchLng, label: locationLabel },
     speciesCode,
     radiusKm: parseInt(radiusKm, 10),
-    mode,
-    results,
-    message: results.length === 0
-      ? "No recent eBird reports were found for this species within the selected radius. Try a larger radius or a different location."
-      : null,
+    backDays: resolvedBackDays,
+    results: observations,
+    message:
+      observations.length === 0
+        ? "No recent eBird reports were found for this species within the selected radius and timeframe. Try a larger radius, longer timeframe, or different location."
+        : null,
   });
 });
 

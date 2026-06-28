@@ -1,4 +1,4 @@
-# BirdsNearMe
+# BirdSights
 
 A lightweight birding web application that helps birdwatchers quickly locate recent eBird reports of a selected bird species near a chosen location.
 
@@ -8,7 +8,7 @@ A lightweight birding web application that helps birdwatchers quickly locate rec
 
 ## Project Overview
 
-BirdsNearMe acts as a discovery layer on top of eBird, answering the question:
+BirdSights acts as a discovery layer on top of eBird, answering the question:
 **"Where have people recently reported this bird near me?"**
 
 Users select a bird species, specify a location (manually or via GPS), choose a search radius, and view recent eBird observation reports on an interactive map.
@@ -199,7 +199,7 @@ npm run preview    # preview production build locally
 The frontend reads `VITE_API_BASE_URL` from `client/.env`.
 
 - **Local development:** `VITE_API_BASE_URL=http://localhost:5000`
-- **Production (Vercel):** Set to your Render backend URL, e.g. `https://birdsnearme-api.onrender.com`
+- **Production (Vercel):** Set to your Render backend URL, e.g. `https://birdsights-api.onrender.com`
 
 ---
 
@@ -208,7 +208,7 @@ The frontend reads `VITE_API_BASE_URL` from `client/.env`.
 The backend's `CLIENT_ORIGIN` environment variable controls which frontend origin is allowed via CORS.
 
 - **Local development:** `CLIENT_ORIGIN=http://localhost:5173`
-- **Production (Render):** Set to your Vercel frontend URL, e.g. `https://birdsnearme.vercel.app`
+- **Production (Render):** Set to your Vercel frontend URL, e.g. `https://birdsights.vercel.app`
 
 This ensures the backend only accepts requests from the approved frontend origin.
 
@@ -286,7 +286,7 @@ The UI labels these values clearly as "Returned" values, not "All Real-World" va
 4. Set **Start Command:** `npm start`
 5. Add environment variables:
    - `EBIRD_API_KEY` = your real eBird API key
-   - `CLIENT_ORIGIN` = your Vercel frontend URL (e.g. `https://birdsnearme.vercel.app`)
+   - `CLIENT_ORIGIN` = your Vercel frontend URL (e.g. `https://birdsights.vercel.app`)
    - `NOMINATIM_USER_AGENT` = `BirdsNearMe/1.0 student-capstone-project`
 6. Do NOT set `PORT` — Render provides it automatically via `process.env.PORT`.
 

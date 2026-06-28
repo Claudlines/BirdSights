@@ -1,6 +1,7 @@
 const VALID_RADII = [5, 10, 25, 50];
+const VALID_BACK_DAYS = [7, 14, 30];
 
-function validateSearchParams({ speciesCode, location, latitude, longitude, radiusKm }) {
+function validateSearchParams({ speciesCode, location, latitude, longitude, radiusKm, backDays }) {
   if (!speciesCode || typeof speciesCode !== "string" || !speciesCode.trim()) {
     return "speciesCode is required.";
   }
@@ -25,6 +26,13 @@ function validateSearchParams({ speciesCode, location, latitude, longitude, radi
   const radius = parseInt(radiusKm, 10);
   if (isNaN(radius) || !VALID_RADII.includes(radius)) {
     return `radiusKm must be one of: ${VALID_RADII.join(", ")}.`;
+  }
+
+  if (backDays != null) {
+    const back = parseInt(backDays, 10);
+    if (isNaN(back) || !VALID_BACK_DAYS.includes(back)) {
+      return `backDays must be one of: ${VALID_BACK_DAYS.join(", ")}.`;
+    }
   }
 
   return null;

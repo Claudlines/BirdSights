@@ -3,18 +3,23 @@ import BirdAutocomplete from "./BirdAutocomplete";
 import ErrorMessage from "./ErrorMessage";
 
 const RADIUS_OPTIONS = [5, 10, 25, 50];
+const TIMEFRAME_OPTIONS = [
+  { label: "Within 1 week",  value: 7 },
+  { label: "Within 2 weeks", value: 14 },
+  { label: "Within 30 days", value: 30 },
+];
 
-export default function SearchForm({ onSearch, loading }) {
+export default function SearchForm({ onSearch, loading, darkMode, onToggleDark }) {
   const [birdText, setBirdText] = useState("");
   const [selectedBird, setSelectedBird] = useState(null);
   const [location, setLocation] = useState("");
   const [gpsCoords, setGpsCoords] = useState(null);
   const [gpsLoading, setGpsLoading] = useState(false);
   const [radiusKm, setRadiusKm] = useState(25);
+  const [backDays, setBackDays] = useState(7);
   const [birdError, setBirdError] = useState("");
   const [locationError, setLocationError] = useState("");
   const [gpsError, setGpsError] = useState("");
-  const [formError, setFormError] = useState("");
 
   function handleBirdSelect(bird) {
     setSelectedBird(bird);
@@ -24,9 +29,7 @@ export default function SearchForm({ onSearch, loading }) {
 
   function handleBirdChange(text) {
     setBirdText(text);
-    if (selectedBird && text !== selectedBird.commonName) {
-      setSelectedBird(null);
-    }
+    if (selectedBird && text !== selectedBird.commonName) setSelectedBird(null);
     setBirdError("");
   }
 
@@ -45,7 +48,6 @@ export default function SearchForm({ onSearch, loading }) {
     setGpsLoading(true);
     setGpsError("");
     setLocation("");
-
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setGpsCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
@@ -55,9 +57,7 @@ export default function SearchForm({ onSearch, loading }) {
       },
       (err) => {
         setGpsLoading(false);
-        if (err.code === err.PERMISSION_DENIED) {
-          setGpsError("We could not access your current location. You can still type a location manually.");
-        } else if (err.code === err.TIMEOUT) {
+        if (err.code === err.TIMEOUT) {
           setGpsError("Location request timed out. Please try again or enter a location manually.");
         } else {
           setGpsError("We could not access your current location. You can still type a location manually.");
@@ -68,34 +68,48 @@ export default function SearchForm({ onSearch, loading }) {
   }
 
   function validate() {
-    let valid = true;
+    let ok = true;
     if (!selectedBird) {
       setBirdError("Please select a bird from the suggestions before searching.");
-      valid = false;
+      ok = false;
     }
     if (!gpsCoords && !location.trim()) {
       setLocationError("Please enter a location or use your current location.");
-      valid = false;
+      ok = false;
     }
-    return valid;
+    return ok;
   }
 
   function handleSubmit(e) {
     e.preventDefault();
-    setFormError("");
     if (!validate()) return;
-
     onSearch({
       speciesCode: selectedBird.speciesCode,
+      commonName: selectedBird.commonName,
       location: gpsCoords ? null : location.trim(),
       latitude: gpsCoords?.lat ?? null,
       longitude: gpsCoords?.lng ?? null,
       radiusKm,
+      backDays,
     });
   }
 
   return (
     <form className="search-card" onSubmit={handleSubmit} noValidate>
+      {/* Theme toggle inside card top-right */}
+      {onToggleDark && (
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "0.5rem" }}>
+          <button
+            type="button"
+            className="btn-theme-toggle"
+            onClick={onToggleDark}
+            aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {darkMode ? "☀ Light" : "🌙 Dark"}
+          </button>
+        </div>
+      )}
+
       <BirdAutocomplete
         value={birdText}
         onChange={handleBirdChange}
@@ -109,7 +123,7 @@ export default function SearchForm({ onSearch, loading }) {
           id="location-input"
           type="text"
           className="form-input"
-          placeholder="e.g. Philadelphia, PA or 19146"
+          placeholder="e.g. Philadelphia, PA or 19121"
           value={location}
           onChange={handleLocationChange}
           disabled={!!gpsCoords}
@@ -144,27 +158,37 @@ export default function SearchForm({ onSearch, loading }) {
       )}
       {gpsError && <ErrorMessage message={gpsError} />}
 
-      <div className="form-group" style={{ marginTop: "1rem" }}>
-        <label htmlFor="radius-select">Search Radius</label>
-        <select
-          id="radius-select"
-          className="form-select"
-          value={radiusKm}
-          onChange={(e) => setRadiusKm(Number(e.target.value))}
-        >
-          {RADIUS_OPTIONS.map((r) => (
-            <option key={r} value={r}>{r} km</option>
-          ))}
-        </select>
+      <div className="form-row-2">
+        <div className="form-group" style={{ marginTop: "1rem" }}>
+          <label htmlFor="radius-select">Radius</label>
+          <select
+            id="radius-select"
+            className="form-select"
+            value={radiusKm}
+            onChange={(e) => setRadiusKm(Number(e.target.value))}
+          >
+            {RADIUS_OPTIONS.map((r) => (
+              <option key={r} value={r}>{r} km</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="form-group" style={{ marginTop: "1rem" }}>
+          <label htmlFor="timeframe-select">Timeframe</label>
+          <select
+            id="timeframe-select"
+            className="form-select"
+            value={backDays}
+            onChange={(e) => setBackDays(Number(e.target.value))}
+          >
+            {TIMEFRAME_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
-      {formError && <ErrorMessage message={formError} />}
-
-      <button
-        type="submit"
-        className="btn-primary"
-        disabled={loading}
-      >
+      <button type="submit" className="btn-primary" disabled={loading}>
         {loading ? "Searching…" : "Find Recent Reports"}
       </button>
     </form>

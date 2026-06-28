@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import SUPPORTED_BIRDS from "../data/supportedBirds";
+import { getBirdImage } from "../utils/birdImages";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
@@ -146,20 +147,41 @@ export default function BirdAutocomplete({ value, onChange, onSelect, error }) {
                 Searching species…
               </li>
             )}
-            {suggestions.map((bird, i) => (
-              <li
-                key={bird.speciesCode}
-                id={`bird-opt-${i}`}
-                role="option"
-                aria-selected={i === highlighted}
-                className={`autocomplete-item${i === highlighted ? " highlighted" : ""}`}
-                onMouseDown={() => handleSelect(bird)}
-                onMouseEnter={() => setHighlighted(i)}
-              >
-                <span className="autocomplete-item-name">{bird.commonName}</span>
-                <span className="autocomplete-item-sci">{bird.scientificName}</span>
-              </li>
-            ))}
+            {suggestions.map((bird, i) => {
+              const imagePath = getBirdImage({
+                commonName: bird.commonName,
+                speciesCode: bird.speciesCode,
+              });
+              return (
+                <li
+                  key={bird.speciesCode}
+                  id={`bird-opt-${i}`}
+                  role="option"
+                  aria-selected={i === highlighted}
+                  className={`autocomplete-item${i === highlighted ? " highlighted" : ""}`}
+                  onMouseDown={() => handleSelect(bird)}
+                  onMouseEnter={() => setHighlighted(i)}
+                >
+                  <span className="autocomplete-thumbnail">
+                    {imagePath ? (
+                      <img
+                        src={imagePath}
+                        alt={`${bird.commonName} bird image`}
+                        loading="lazy"
+                      />
+                    ) : (
+                      <span className="autocomplete-thumbnail-placeholder" aria-hidden="true">
+                        Pending
+                      </span>
+                    )}
+                  </span>
+                  <span className="autocomplete-text">
+                    <span className="autocomplete-common-name">{bird.commonName}</span>
+                    <span className="autocomplete-scientific-name">{bird.scientificName}</span>
+                  </span>
+                </li>
+              );
+            })}
             {usingFallback && !loading && (
               <li
                 style={{

@@ -3,7 +3,7 @@ const { normalizeObservation } = require("../utils/normalizeObservation");
 
 const EBIRD_BASE = "https://api.ebird.org/v2";
 
-async function fetchRecentObservations({ speciesCode, lat, lng, radiusKm }) {
+async function fetchRecentObservations({ speciesCode, lat, lng, radiusKm, backDays = 7 }) {
   const apiKey = process.env.EBIRD_API_KEY;
 
   if (!apiKey || apiKey === "your_ebird_api_key_here") {
@@ -16,8 +16,8 @@ async function fetchRecentObservations({ speciesCode, lat, lng, radiusKm }) {
     lat: String(lat),
     lng: String(lng),
     dist: String(radiusKm),
-    back: "30",
-    maxResults: "100",
+    back: String(backDays),
+    maxResults: "10000",
     includeProvisional: "false",
   });
 

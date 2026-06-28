@@ -1,81 +1,107 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import MapView from "./MapView";
 import SelectedReportPanel from "./SelectedReportPanel";
 import ReportList from "./ReportList";
 import LegendPanel from "./LegendPanel";
-import ErrorMessage from "./ErrorMessage";
-import { searchBirds } from "../api/searchApi";
+import SummaryPanel from "./SummaryPanel";
+import BirdImageCard from "./BirdImageCard";
+import { sortItems } from "../utils/sortReports";
 
-export default function ResultsPage({ initialData, searchParams, onBack }) {
-  const [data, setData] = useState(initialData);
+const PAGE_SIZE = 10;
+
+export default function ResultsPage({ initialData, searchParams, onBack, darkMode, onToggleDark }) {
+  const [data] = useState(initialData);
   const [selectedReport, setSelectedReport] = useState(null);
-  const [showAll, setShowAll] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [sortOrder, setSortOrder] = useState("newest");
+  const [page, setPage] = useState(1);
 
-  const results = data?.results ?? [];
+  const rawResults = data?.results ?? [];
   const searchCenter = data?.searchCenter;
   const radiusKm = data?.radiusKm ?? searchParams?.radiusKm ?? 25;
+  const backDays = data?.backDays ?? searchParams?.backDays ?? 7;
 
-  async function handleToggleShowAll(checked) {
-    setShowAll(checked);
-    setError("");
-    setLoading(true);
-    setSelectedReport(null);
-    try {
-      const fresh = await searchBirds({ ...searchParams, showAllReports: checked });
-      setData(fresh);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+  // Sort the flat raw results; pagination is handled inside ReportList
+  const sortedResults = useMemo(
+    () => sortItems(rawResults, sortOrder),
+    [rawResults, sortOrder]
+  );
+
+  const totalPages = Math.max(1, Math.ceil(sortedResults.length / PAGE_SIZE));
+
+  function handleSortOrder(order) {
+    setSortOrder(order);
+    setPage(1);
   }
 
   const handleSelectReport = useCallback((report) => {
     setSelectedReport(report);
   }, []);
 
-  const birdName = results[0]?.commonName || searchParams?.speciesCode || "Species";
-  const locationLabel = searchCenter?.label || "your location";
+  const timeframeLabel =
+    backDays === 7 ? "Within 7 days" : backDays === 14 ? "Within 14 days" : "Within 30 days";
+
+  const selectedCommonName = searchParams?.commonName || rawResults[0]?.commonName;
+  const selectedSpeciesCode = searchParams?.speciesCode || rawResults[0]?.speciesCode;
+  const birdName = selectedCommonName || selectedSpeciesCode || "Species";
 
   return (
     <div className="results-page">
+      {/* ── Header ────────────────────────────────────────────────────── */}
       <header className="results-header">
         <button className="btn-back" onClick={onBack} aria-label="Back to search">
           ← Back
         </button>
-        <span className="results-title">BirdsNearMe</span>
+        <span className="results-title">BirdSights</span>
         <span className="results-subtitle">
-          {birdName} · {radiusKm} km radius · {locationLabel}
+          {birdName} &bull; {radiusKm} km &bull; {timeframeLabel}
         </span>
+        <button
+          className="btn-theme-toggle"
+          onClick={onToggleDark}
+          aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+          style={{ marginLeft: "auto" }}
+        >
+          {darkMode ? "☀ Light" : "🌙 Dark"}
+        </button>
       </header>
 
-      <div className="toggle-row">
-        <input
-          id="show-all-toggle"
-          type="checkbox"
-          checked={showAll}
-          onChange={(e) => handleToggleShowAll(e.target.checked)}
-          disabled={loading}
-        />
-        <label htmlFor="show-all-toggle">Show All Individual Reports</label>
-        {loading && <span style={{ color: "#9aa0a6", marginLeft: "0.5rem" }}>Updating…</span>}
+      {/* ── Summary metrics ───────────────────────────────────────────── */}
+      <SummaryPanel data={data} searchParams={searchParams} />
+
+      {/* ── Selected bird image ──────────────────────────────────────── */}
+      <BirdImageCard commonName={selectedCommonName} speciesCode={selectedSpeciesCode} />
+
+      {/* ── Sort control ──────────────────────────────────────────────── */}
+      <div className="controls-bar" role="toolbar" aria-label="Sort controls">
+        <div className="control-group">
+          <span className="control-label">Sort</span>
+          <div className="segmented-control" role="group" aria-label="Sort order">
+            <button
+              className={`seg-btn${sortOrder === "newest" ? " active" : ""}`}
+              onClick={() => handleSortOrder("newest")}
+              aria-pressed={sortOrder === "newest"}
+            >
+              Newest first
+            </button>
+            <button
+              className={`seg-btn${sortOrder === "oldest" ? " active" : ""}`}
+              onClick={() => handleSortOrder("oldest")}
+              aria-pressed={sortOrder === "oldest"}
+            >
+              Oldest first
+            </button>
+          </div>
+        </div>
       </div>
 
-      {error && (
-        <div style={{ padding: "0.5rem 1rem" }}>
-          <ErrorMessage message={error} />
-        </div>
-      )}
-
+      {/* ── Map + panels ─────────────────────────────────────────────── */}
       <div className="results-main">
         <SelectedReportPanel report={selectedReport} />
 
         <MapView
           searchCenter={searchCenter}
           radiusKm={radiusKm}
-          results={results}
+          results={sortedResults}
           selectedId={selectedReport?.id}
           onSelectReport={handleSelectReport}
         />
@@ -83,10 +109,15 @@ export default function ResultsPage({ initialData, searchParams, onBack }) {
         <LegendPanel />
       </div>
 
+      {/* ── Result list + pagination ───────────────────────────────────── */}
       <ReportList
-        results={results}
+        results={sortedResults}
         selectedId={selectedReport?.id}
         onSelect={handleSelectReport}
+        page={page}
+        totalPages={totalPages}
+        onPrevPage={() => setPage((p) => Math.max(1, p - 1))}
+        onNextPage={() => setPage((p) => Math.min(totalPages, p + 1))}
       />
 
       <footer className="footer">
