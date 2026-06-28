@@ -6,14 +6,22 @@ import LegendPanel from "./LegendPanel";
 import SummaryPanel from "./SummaryPanel";
 import BirdImageCard from "./BirdImageCard";
 import { sortItems } from "../utils/sortReports";
+import { saveSearch, isSearchSaved } from "../utils/savedSearches";
 
 const PAGE_SIZE = 10;
 
-export default function ResultsPage({ initialData, searchParams, onBack, darkMode, onToggleDark }) {
+export default function ResultsPage({ initialData, searchParams, onBack, darkMode, onToggleDark, onSaveSearch }) {
   const [data] = useState(initialData);
   const [selectedReport, setSelectedReport] = useState(null);
   const [sortOrder, setSortOrder] = useState("newest");
   const [page, setPage] = useState(1);
+  const [saved, setSaved] = useState(() => isSearchSaved(searchParams));
+
+  function handleSaveSearch() {
+    saveSearch(searchParams);
+    setSaved(true);
+    onSaveSearch?.();
+  }
 
   const rawResults = data?.results ?? [];
   const searchCenter = data?.searchCenter;
@@ -55,6 +63,14 @@ export default function ResultsPage({ initialData, searchParams, onBack, darkMod
         <span className="results-subtitle">
           {birdName} &bull; {radiusKm} km &bull; {timeframeLabel}
         </span>
+        <button
+          type="button"
+          className="btn-save-search"
+          onClick={handleSaveSearch}
+          disabled={saved}
+        >
+          {saved ? "Saved" : "Save Search"}
+        </button>
         <button
           className="btn-theme-toggle"
           onClick={onToggleDark}

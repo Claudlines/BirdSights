@@ -3,7 +3,9 @@ import SearchForm from "./components/SearchForm";
 import ResultsPage from "./components/ResultsPage";
 import LoadingIndicator from "./components/LoadingIndicator";
 import ErrorMessage from "./components/ErrorMessage";
+import SavedSearchesPanel from "./components/SavedSearchesPanel";
 import { searchBirds } from "./api/searchApi";
+import { getSavedSearches, deleteSavedSearch } from "./utils/savedSearches";
 import "./styles/main.css";
 
 export default function App() {
@@ -12,6 +14,7 @@ export default function App() {
   const [searchData, setSearchData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [savedSearches, setSavedSearches] = useState(() => getSavedSearches());
   const [darkMode, setDarkMode] = useState(
     () => localStorage.getItem("bnm-theme") === "dark"
   );
@@ -43,6 +46,23 @@ export default function App() {
     setPage("landing");
     setSearchData(null);
     setError("");
+    setSavedSearches(getSavedSearches());
+  }
+
+  function handleRunSavedSearch(saved) {
+    handleSearch({
+      speciesCode: saved.speciesCode,
+      commonName: saved.commonName,
+      location: saved.location || null,
+      latitude: saved.latitude,
+      longitude: saved.longitude,
+      radiusKm: saved.radiusKm,
+      backDays: saved.backDays,
+    });
+  }
+
+  function handleDeleteSavedSearch(id) {
+    setSavedSearches(deleteSavedSearch(id));
   }
 
   if (page === "results" && searchData) {
@@ -53,6 +73,7 @@ export default function App() {
         onBack={handleBack}
         darkMode={darkMode}
         onToggleDark={toggleDark}
+        onSaveSearch={() => setSavedSearches(getSavedSearches())}
       />
     );
   }
@@ -62,25 +83,37 @@ export default function App() {
       <h1 className="landing-logo">BirdSights</h1>
       <p className="landing-tagline">Find recent bird sightings near you</p>
 
-      <SearchForm
-        onSearch={handleSearch}
-        loading={loading}
-        darkMode={darkMode}
-        onToggleDark={toggleDark}
-        initialValues={searchParams}
-      />
+      <div className="landing-content">
+        <div className="landing-spacer" aria-hidden="true" />
 
-      {loading && (
-        <div style={{ marginTop: "1.5rem" }}>
-          <LoadingIndicator />
-        </div>
-      )}
+        <div className="landing-main">
+          <SearchForm
+            onSearch={handleSearch}
+            loading={loading}
+            darkMode={darkMode}
+            onToggleDark={toggleDark}
+            initialValues={searchParams}
+          />
 
-      {error && (
-        <div style={{ marginTop: "1rem", maxWidth: "560px", width: "100%" }}>
-          <ErrorMessage message={error} />
+          {loading && (
+            <div style={{ marginTop: "1.5rem" }}>
+              <LoadingIndicator />
+            </div>
+          )}
+
+          {error && (
+            <div style={{ marginTop: "1rem", maxWidth: "560px", width: "100%" }}>
+              <ErrorMessage message={error} />
+            </div>
+          )}
         </div>
-      )}
+
+        <SavedSearchesPanel
+          searches={savedSearches}
+          onRun={handleRunSavedSearch}
+          onDelete={handleDeleteSavedSearch}
+        />
+      </div>
 
       <footer className="footer" style={{ marginTop: "2rem" }}>
         Powered by{" "}
