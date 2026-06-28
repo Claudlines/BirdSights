@@ -294,7 +294,7 @@ The UI labels these values clearly as "Returned" values, not "All Real-World" va
 
 ## Known MVP Limitations
 
-- No user accounts or saved searches
+- No user accounts
 - No weather integration
 - No AI recommendations or migration forecasting
 - Species autocomplete uses full eBird taxonomy (11 000+ species) when the API key is configured, and falls back to 10 demo species when the taxonomy is unavailable
