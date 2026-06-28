@@ -67,6 +67,7 @@ export default function App() {
         loading={loading}
         darkMode={darkMode}
         onToggleDark={toggleDark}
+        initialValues={searchParams}
       />
 
       {loading && (

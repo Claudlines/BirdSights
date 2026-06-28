@@ -9,14 +9,22 @@ const TIMEFRAME_OPTIONS = [
   { label: "Within 30 days", value: 30 },
 ];
 
-export default function SearchForm({ onSearch, loading, darkMode, onToggleDark }) {
-  const [birdText, setBirdText] = useState("");
-  const [selectedBird, setSelectedBird] = useState(null);
-  const [location, setLocation] = useState("");
-  const [gpsCoords, setGpsCoords] = useState(null);
+export default function SearchForm({ onSearch, loading, darkMode, onToggleDark, initialValues }) {
+  const [birdText, setBirdText] = useState(initialValues?.commonName || "");
+  const [selectedBird, setSelectedBird] = useState(
+    initialValues?.speciesCode
+      ? { speciesCode: initialValues.speciesCode, commonName: initialValues.commonName }
+      : null
+  );
+  const [location, setLocation] = useState(initialValues?.location || "");
+  const [gpsCoords, setGpsCoords] = useState(
+    initialValues?.latitude != null && initialValues?.longitude != null
+      ? { lat: initialValues.latitude, lng: initialValues.longitude }
+      : null
+  );
   const [gpsLoading, setGpsLoading] = useState(false);
-  const [radiusKm, setRadiusKm] = useState(25);
-  const [backDays, setBackDays] = useState(7);
+  const [radiusKm, setRadiusKm] = useState(initialValues?.radiusKm ?? 25);
+  const [backDays, setBackDays] = useState(initialValues?.backDays ?? 7);
   const [birdError, setBirdError] = useState("");
   const [locationError, setLocationError] = useState("");
   const [gpsError, setGpsError] = useState("");
