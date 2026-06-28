@@ -35,6 +35,6 @@ app.use((err, _req, res, _next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`BirdsNearMe backend running on port ${PORT}`);
+  console.log(`BirdSights backend running on port ${PORT}`);
   console.log(`Accepting requests from: ${CLIENT_ORIGIN}`);
 });

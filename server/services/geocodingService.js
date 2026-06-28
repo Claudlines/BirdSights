@@ -16,7 +16,7 @@ async function geocodeLocation(locationString) {
   }
 
   const userAgent =
-    process.env.NOMINATIM_USER_AGENT || "BirdsNearMe/1.0 student-capstone-project";
+    process.env.NOMINATIM_USER_AGENT || "BirdSights/1.0 student-capstone-project";
 
   // For 5-digit ZIP codes use postalcode + countrycodes=us so Nominatim
   // doesn't resolve them to non-US postal codes (e.g. Lithuanian postcodes).

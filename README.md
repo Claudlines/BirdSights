@@ -50,7 +50,7 @@ Users select a bird species, specify a location (manually or via GPS), choose a 
 ## Folder Structure
 
 ```
-BirdsNearMeProject/
+BirdSightsProject/
   .gitignore
   README.md
   client/
@@ -138,7 +138,7 @@ The eBird API key is not configured. Please add EBIRD_API_KEY to the backend env
 
 ```bash
 git clone <your-repo-url>
-cd BirdsNearMeProject
+cd BirdSightsProject
 ```
 
 ### 2. Backend setup
@@ -287,7 +287,7 @@ The UI labels these values clearly as "Returned" values, not "All Real-World" va
 5. Add environment variables:
    - `EBIRD_API_KEY` = your real eBird API key
    - `CLIENT_ORIGIN` = your Vercel frontend URL (e.g. `https://birdsights.vercel.app`)
-   - `NOMINATIM_USER_AGENT` = `BirdsNearMe/1.0 student-capstone-project`
+   - `NOMINATIM_USER_AGENT` = `BirdSights/1.0 student-capstone-project`
 6. Do NOT set `PORT` — Render provides it automatically via `process.env.PORT`.
 
 ---

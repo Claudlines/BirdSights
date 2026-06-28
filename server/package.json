@@ -1,7 +1,7 @@
 {
-  "name": "birdsnearme-server",
+  "name": "birdsights-server",
   "version": "1.0.0",
-  "description": "BirdsNearMe Express backend",
+  "description": "BirdSights Express backend",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
