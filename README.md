@@ -17,19 +17,30 @@ Users select a bird species, specify a location (manually or via GPS), choose a 
 
 ## MVP Features
 
-- Bird species autocomplete (full eBird taxonomy when API key is configured; 10 demo species as fallback)
+- Full eBird taxonomy autocomplete when the backend API key is configured
+- Local fallback species list when taxonomy lookup is unavailable
+- Bird thumbnails in autocomplete for curated species
+- "Pending" placeholders in autocomplete for birds without local images
+- Selected bird reference image card on the results page
+- Selected bird image/pending card still appears when no sightings are found
 - Manual location search (address, ZIP, city/state, landmark)
 - GPS / current location detection
 - Radius filtering: 5, 10, 25, 50 km
+- Timeframe filtering: 7, 14, 30 days
 - eBird API integration (recent nearby observations)
 - Backend geocoding via OpenStreetMap Nominatim
 - Interactive map (React Leaflet + OpenStreetMap tiles)
-- Search radius circle overlay
-- Hotspot/location grouping (deduplicated by default)
-- "Show All Individual Reports" toggle
-- Selected report detail panel
-- Recent report locations list with checklist links
+- Search radius boundary displayed on the map
+- Map key showing recent eBird sighting locations, selected location, and search radius boundary
+- Recent eBird Sighting Locations list with checklist links
+- Summary metrics for returned eBird records
+- Newest/oldest sorting
+- Pagination
+- Saved searches stored locally in the browser using localStorage
+- Ability to rerun saved searches without re-entering bird/location details
+- Search inputs preserved when returning from the results page
 - Responsive layout (desktop + mobile)
+- Dark mode support
 
 ---
 
@@ -65,16 +76,24 @@ BirdSightsProject/
         searchApi.js
       components/
         BirdAutocomplete.jsx
+        BirdImageCard.jsx
         SearchForm.jsx
         ResultsPage.jsx
         MapView.jsx
         SelectedReportPanel.jsx
+        SavedSearchesPanel.jsx
+        SummaryPanel.jsx
         ReportList.jsx
         LegendPanel.jsx
         ErrorMessage.jsx
         LoadingIndicator.jsx
       data/
         supportedBirds.js
+      utils/
+        birdImages.js
+        groupReports.js
+        savedSearches.js
+        sortReports.js
       styles/
         main.css
   server/
@@ -259,7 +278,6 @@ The eBird geo/recent species endpoint may already return only the **most recent 
 - `reportCountAtLocation` reflects only the records actually returned by the API, not all real-world sightings at that hotspot.
 - `additionalReturnedReports` = `reportCountAtLocation - 1`.
 - `numberObserved` (from eBird's `howMany`) is the count from that specific report/checklist, not a total count of all birds ever seen there.
-- Grouped mode and individual mode may look similar because the API already deduplicates by location.
 
 The UI labels these values clearly as "Returned" values, not "All Real-World" values.
 
@@ -294,28 +312,25 @@ The UI labels these values clearly as "Returned" values, not "All Real-World" va
 
 ## Known MVP Limitations
 
-- No user accounts
-- No weather integration
-- No AI recommendations or migration forecasting
-- Species autocomplete uses full eBird taxonomy (11 000+ species) when the API key is configured, and falls back to 10 demo species when the taxonomy is unavailable
-- eBird nearby species observations may already return only the most recent report per location
-- "Reports Returned At This Location" reflects only records returned by the eBird endpoint, not all real-world reports
-- "Number Observed In Latest Report" comes from eBird's `howMany` field and does not represent a total sighting count
-- Grouped mode and individual mode may look similar due to eBird's endpoint behavior
-- Nominatim geocoding is public and rate-limited — suitable for a small student demo
-- The app depends on eBird public observation data which may be incomplete or delayed
-- The app does not guarantee a bird is currently present at any location
+- BirdSights depends on public eBird API data.
+- The current app uses recent eBird observation results, not full historical analysis.
+- The app supports preset recent windows of 7, 14, and 30 days, but not exact custom date ranges.
+- Returned sightings are records returned by the API, not a guarantee of every real-world sighting.
+- The app does not guarantee a bird is currently present.
+- The curated bird image library includes a starter set of species; other species display "Image pending."
+- Saved searches are stored locally in the browser and are not synced across devices.
+- There are no user accounts, email alerts, AI assistant, weather integration, or EBD-backed historical analytics in the MVP.
+- Nominatim is public and rate-limited, suitable for a student prototype.
 
 ---
 
 ## Future Enhancement Ideas
 
-- Full eBird taxonomy lookup for complete species autocomplete
-- Bird photos via Flickr / Macaulay Library
-- AI assistant for interpreting eBird results
-- Weather context for planned birding trips
-- Saved searches and favorites
-- Advanced filtering (date range, observer count, rarity flags)
-- Optional checklist detail view for a single user-selected report
-- Optional hotspot enrichment via eBird hotspot info endpoint
+- Custom date ranges and timeline search
+- Historical EBD-backed search
+- Same-checklist co-occurrence search
+- Email alerts
+- AI results assistant
+- Expanded bird image library
+- Optional checklist detail view
 - Improved mobile UX
