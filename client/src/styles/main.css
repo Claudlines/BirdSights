@@ -24,6 +24,18 @@ body {
   color: #1a6c3a;
   letter-spacing: -1px;
   margin-bottom: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.landing-logo-img {
+  height: 2.4rem;
+  width: auto;
+}
+
+@media (max-width: 600px) {
+  .landing-logo-img { height: 1.9rem; }
 }
 
 .landing-tagline {

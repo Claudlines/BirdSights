@@ -80,7 +80,15 @@ export default function App() {
 
   return (
     <div className="landing">
-      <h1 className="landing-logo">BirdSights</h1>
+      <h1 className="landing-logo">
+        BirdSights
+        <img
+          src="/birdsights-logo-bird-left.png"
+          alt=""
+          aria-hidden="true"
+          className="landing-logo-img"
+        />
+      </h1>
       <p className="landing-tagline">Find recent bird sightings near you</p>
 
       <div className="landing-content">
