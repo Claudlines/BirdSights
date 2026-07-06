@@ -5,6 +5,7 @@ import ReportList from "./ReportList";
 import LegendPanel from "./LegendPanel";
 import SummaryPanel from "./SummaryPanel";
 import BirdImageCard from "./BirdImageCard";
+import BirdActivitySummary from "./BirdActivitySummary";
 import { sortItems } from "../utils/sortReports";
 import { saveSearch, isSearchSaved } from "../utils/savedSearches";
 
@@ -86,6 +87,9 @@ export default function ResultsPage({ initialData, searchParams, onBack, darkMod
 
       {/* ── Selected bird image ──────────────────────────────────────── */}
       <BirdImageCard commonName={selectedCommonName} speciesCode={selectedSpeciesCode} />
+
+      {/* ── Bird activity summary ────────────────────────────────────── */}
+      <BirdActivitySummary data={data} searchParams={searchParams} />
 
       {/* ── Sort control ──────────────────────────────────────────────── */}
       <div className="controls-bar" role="toolbar" aria-label="Sort controls">

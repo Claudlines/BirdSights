@@ -27,13 +27,14 @@ export default function ReportList({
   return (
     <div className="report-list-section">
       <div className="report-list-header">
-        <h2>Recent eBird Sighting Locations ({results?.length ?? 0})</h2>
+        <h2>Recent eBird Sighting Locations</h2>
         {!isEmpty && totalPages > 1 && (
           <span className="page-info">Page {page} of {totalPages}</span>
         )}
       </div>
       <p className="report-list-note">
-        Each result is a returned eBird checklist record where this bird was reported within the selected timeframe.
+        Each result is the most recent eBird report of this bird at a nearby sighting location
+        within the selected timeframe.
       </p>
 
       {isEmpty ? (

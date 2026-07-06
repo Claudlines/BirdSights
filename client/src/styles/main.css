@@ -499,12 +499,6 @@ body {
   color: #202124;
 }
 
-.summary-meta-line {
-  font-size: 0.82rem;
-  color: #5f6368;
-  margin-top: 0.1rem;
-}
-
 /* ─── Bird Image Card ────────────────────────────────────────────── */
 .bird-image-card {
   display: flex;
@@ -604,6 +598,66 @@ body {
   color: #9aa0a6;
   text-transform: none;
   letter-spacing: 0;
+}
+
+.summary-panel-note {
+  flex-basis: 100%;
+  font-size: 0.75rem;
+  color: #80868b;
+  margin: 0;
+  max-width: 640px;
+}
+
+/* ─── Bird Activity Summary ──────────────────────────────────────── */
+.activity-summary {
+  padding: 0.85rem 1.2rem;
+  background: #fff;
+  border-bottom: 1px solid #dfe1e5;
+}
+
+.activity-summary-title {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #5f6368;
+  margin: 0 0 0.55rem;
+}
+
+.activity-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.55rem 1.25rem;
+}
+
+.activity-item {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.activity-item-label {
+  font-size: 0.7rem;
+  color: #5f6368;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.activity-item-value {
+  font-size: 0.9rem;
+  color: #202124;
+  margin-top: 0.1rem;
+}
+
+.activity-item-value.activity-highlight {
+  font-weight: 600;
+  color: #1a6c3a;
+}
+
+.activity-summary-note {
+  font-size: 0.75rem;
+  color: #80868b;
+  margin: 0.65rem 0 0;
+  max-width: 640px;
 }
 
 /* ─── Controls Bar ───────────────────────────────────────────────── */
@@ -942,6 +996,10 @@ body {
   .controls-bar { gap: 0.75rem; }
   .summary-panel { flex-direction: column; align-items: flex-start; }
   .summary-stats { gap: 0.75rem; }
+  .activity-summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.55rem 0.75rem;
+  }
 }
 
 @media (max-width: 760px) {
@@ -1070,10 +1128,10 @@ body {
   border-color: #2d4a6e;
 }
 [data-theme="dark"] .summary-bird-line { color: #e2e8f0; }
-[data-theme="dark"] .summary-meta-line { color: #94a3b8; }
 [data-theme="dark"] .summary-stat-value { color: #4ade80; }
 [data-theme="dark"] .summary-stat-label { color: #94a3b8; }
 [data-theme="dark"] .summary-note { color: #64748b; }
+[data-theme="dark"] .summary-panel-note { color: #64748b; }
 
 /* Bird image card */
 [data-theme="dark"] .bird-image-card {
@@ -1088,6 +1146,17 @@ body {
   border-color: #2d4a6e;
 }
 [data-theme="dark"] .bird-image-card-placeholder-text { color: #64748b; }
+
+/* Bird activity summary */
+[data-theme="dark"] .activity-summary {
+  background: #1e2d3d;
+  border-color: #2d4a6e;
+}
+[data-theme="dark"] .activity-summary-title { color: #94a3b8; }
+[data-theme="dark"] .activity-item-label { color: #94a3b8; }
+[data-theme="dark"] .activity-item-value { color: #e2e8f0; }
+[data-theme="dark"] .activity-item-value.activity-highlight { color: #4ade80; }
+[data-theme="dark"] .activity-summary-note { color: #64748b; }
 
 /* Controls bar */
 [data-theme="dark"] .controls-bar {
