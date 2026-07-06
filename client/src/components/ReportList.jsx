@@ -1,3 +1,5 @@
+import { getReportFreshness } from "../utils/reportFreshness";
+
 const PAGE_SIZE = 10;
 
 function fmtDate(dateStr) {
@@ -78,6 +80,7 @@ export default function ReportList({
 }
 
 function SightingCard({ r, selectedId, onSelect }) {
+  const freshness = getReportFreshness(r.observationDateTime);
   return (
     <div
       className={`report-card${r.id === selectedId ? " selected" : ""}`}
@@ -88,6 +91,7 @@ function SightingCard({ r, selectedId, onSelect }) {
       aria-pressed={r.id === selectedId}
     >
       <div className="report-card-name">{r.locationName}</div>
+      <span className={`freshness-badge freshness-${freshness.key}`}>{freshness.label}</span>
       <div className="report-card-meta">
         Latest checklist: {fmtDate(r.observationDateTime)}
       </div>

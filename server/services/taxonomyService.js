@@ -96,4 +96,17 @@ function searchTaxonomy(taxonomy, query) {
   return matches.slice(0, 20);
 }
 
-module.exports = { loadTaxonomy, searchTaxonomy };
+// Resolves a free-text bird name (e.g. from Ask BirdSights) to a single
+// species record. Prefers an exact common-name match, then the top search hit.
+function findBestSpeciesMatch(taxonomy, name) {
+  const q = (name || "").trim().toLowerCase();
+  if (q.length < 2) return null;
+
+  const exact = taxonomy.find((b) => b.commonName.toLowerCase() === q);
+  if (exact) return exact;
+
+  const matches = searchTaxonomy(taxonomy, q);
+  return matches[0] || null;
+}
+
+module.exports = { loadTaxonomy, searchTaxonomy, findBestSpeciesMatch };

@@ -72,6 +72,9 @@ async function geocodeLocation(locationString) {
     lat: parseFloat(data[0].lat),
     lng: parseFloat(data[0].lon),
     label: data[0].display_name || locationString,
+    // Used by Ask BirdSights to detect broad areas (states, countries)
+    addressType: data[0].addresstype || null,
+    placeRank: data[0].place_rank != null ? Number(data[0].place_rank) : null,
   };
 
   cache.set(key, result);

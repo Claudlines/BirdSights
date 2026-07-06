@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { MapContainer, TileLayer, Circle, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { getReportFreshness } from "../utils/reportFreshness";
 
 // Fix Leaflet's default icon paths broken by Vite bundling
 delete L.Icon.Default.prototype._getIconUrl;
@@ -11,10 +12,15 @@ L.Icon.Default.mergeOptions({
   shadowUrl:     new URL("leaflet/dist/images/marker-shadow.png",  import.meta.url).href,
 });
 
-function createMarkerIcon(selected) {
+// Pin color reflects the age of the returned report (freshness), except the
+// selected marker which always uses the blue selected style.
+function createMarkerIcon(selected, freshnessKey) {
+  const markerClass = selected
+    ? "custom-marker selected-marker"
+    : `custom-marker marker-${freshnessKey || "older"}`;
   return L.divIcon({
     className: "",
-    html: `<div class="custom-marker${selected ? " selected-marker" : ""}"></div>`,
+    html: `<div class="${markerClass}"></div>`,
     iconSize:   selected ? [22, 22] : [18, 18],
     iconAnchor: selected ? [11, 11] : [9, 9],
   });
@@ -46,9 +52,10 @@ function MarkerLayer({ results, selectedId, onSelectReport }) {
 
     results.filter((r) => r.hasCoords).forEach((report) => {
       const isSelected = report.id === selectedIdRef.current;
+      const freshness = getReportFreshness(report.observationDateTime);
       const marker = L.marker([report.latitude, report.longitude], {
-        icon: createMarkerIcon(isSelected),
-        title: report.locationName,
+        icon: createMarkerIcon(isSelected, freshness.key),
+        title: `${report.locationName} (${freshness.label.toLowerCase()})`,
       }).addTo(map);
 
       marker.on("click", () => onSelectRef.current(report));
@@ -64,8 +71,14 @@ function MarkerLayer({ results, selectedId, onSelectReport }) {
   useEffect(() => {
     const prevId = prevSelectedRef.current;
 
+    // Deselected markers return to their freshness color
+    const freshnessKeyFor = (id) => {
+      const report = resultsRef.current.find((r) => r.id === id);
+      return report ? getReportFreshness(report.observationDateTime).key : "older";
+    };
+
     if (prevId && markersRef.current[prevId]) {
-      markersRef.current[prevId].setIcon(createMarkerIcon(false));
+      markersRef.current[prevId].setIcon(createMarkerIcon(false, freshnessKeyFor(prevId)));
     }
     if (selectedId && markersRef.current[selectedId]) {
       markersRef.current[selectedId].setIcon(createMarkerIcon(true));

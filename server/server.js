@@ -3,15 +3,22 @@ const express = require("express");
 const cors = require("cors");
 const searchRoutes = require("./routes/searchRoutes");
 const speciesRoutes = require("./routes/speciesRoutes");
+const askRoutes = require("./routes/askRoutes");
 
 const app = express();
+
+// Render (and similar hosts) sit one proxy hop in front of the app. Trusting
+// that single hop lets Express read the real client IP from X-Forwarded-For,
+// which the /api/ask rate limiter needs for accurate per-IP limits.
+app.set("trust proxy", 1);
+
 const PORT = process.env.PORT || 5000;
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:5173";
 
 app.use(
   cors({
     origin: CLIENT_ORIGIN,
-    methods: ["GET"],
+    methods: ["GET", "POST"],
     allowedHeaders: ["Content-Type"],
   })
 );
@@ -24,6 +31,7 @@ app.get("/api/health", (_req, res) => {
 
 app.use("/api", searchRoutes);
 app.use("/api", speciesRoutes);
+app.use("/api", askRoutes);
 
 app.use((_req, res) => {
   res.status(404).json({ error: "Not found." });

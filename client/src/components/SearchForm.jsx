@@ -131,7 +131,7 @@ export default function SearchForm({ onSearch, loading, darkMode, onToggleDark, 
           id="location-input"
           type="text"
           className="form-input"
-          placeholder="e.g. Philadelphia, PA or 19121"
+          placeholder="e.g. Philadelphia, PA or 19153"
           value={location}
           onChange={handleLocationChange}
           disabled={!!gpsCoords}

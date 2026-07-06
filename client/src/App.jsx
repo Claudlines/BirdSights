@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import SearchForm from "./components/SearchForm";
+import AskBirdSights from "./components/AskBirdSights";
 import ResultsPage from "./components/ResultsPage";
 import LoadingIndicator from "./components/LoadingIndicator";
 import ErrorMessage from "./components/ErrorMessage";
@@ -114,6 +115,8 @@ export default function App() {
               <ErrorMessage message={error} />
             </div>
           )}
+
+          <AskBirdSights onViewResults={handleSearch} searchLoading={loading} />
         </div>
 
         <SavedSearchesPanel

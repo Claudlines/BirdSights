@@ -3,6 +3,11 @@ const router = express.Router();
 const { geocodeLocation } = require("../services/geocodingService");
 const { fetchRecentObservations } = require("../services/ebirdService");
 const { validateSearchParams } = require("../utils/validateSearchParams");
+const {
+  isBroadLocationName,
+  isBroadGeocodeResult,
+  broadLocationSearchMessage,
+} = require("../utils/broadLocations");
 
 const DEFAULT_BACK_DAYS = 7;
 
@@ -34,7 +39,15 @@ router.get("/search", async (req, res) => {
       searchLng = parseFloat(longitude);
       locationLabel = "Current Location";
     } else {
+      // States, provinces, and countries are too large for a radius search —
+      // reject with a friendly message instead of searching a single point.
+      if (isBroadLocationName(location)) {
+        return res.status(400).json({ error: broadLocationSearchMessage(location) });
+      }
       const geo = await geocodeLocation(location);
+      if (isBroadGeocodeResult(geo)) {
+        return res.status(400).json({ error: broadLocationSearchMessage(location) });
+      }
       searchLat = geo.lat;
       searchLng = geo.lng;
       locationLabel = geo.label;
