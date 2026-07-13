@@ -85,4 +85,75 @@ async function fetchRecentObservations({ speciesCode, lat, lng, radiusKm, backDa
   return data.map((raw) => normalizeObservation(raw, lat, lng));
 }
 
-module.exports = { fetchRecentObservations };
+function requireApiKey() {
+  const apiKey = process.env.EBIRD_API_KEY;
+  if (!apiKey || apiKey === "your_ebird_api_key_here") {
+    throw new Error(
+      "The eBird API key is not configured. Please add EBIRD_API_KEY to the backend environment variables."
+    );
+  }
+  return apiKey;
+}
+
+// Shared fetch for the Explore endpoints — returns a raw eBird record array.
+async function fetchEbirdList(url, apiKey) {
+  let response;
+  try {
+    response = await fetch(url, {
+      headers: { "x-ebirdapitoken": apiKey },
+      signal: AbortSignal.timeout(10000),
+    });
+  } catch (err) {
+    console.error("[eBird] Network error:", err.message);
+    throw new Error("The eBird API is currently unavailable. Please try again later.");
+  }
+
+  if (response.status === 429) {
+    throw new Error("The eBird API is temporarily rate-limited. Please try again in a moment.");
+  }
+  if (response.status === 204) return [];
+  if (!response.ok) {
+    const text = await response.text().catch(() => "");
+    console.error("[eBird] HTTP error:", response.status, text.slice(0, 200));
+    throw new Error("The eBird API returned an unexpected error. Please try again later.");
+  }
+
+  let data;
+  try {
+    data = await response.json();
+  } catch {
+    console.error("[eBird] JSON parse error");
+    return [];
+  }
+  return Array.isArray(data) ? data : [];
+}
+
+// All species recently reported nearby. eBird returns ONE most-recent record
+// per species, so this gives a species pool but no per-species frequency.
+async function fetchNearbySpecies({ lat, lng, radiusKm, backDays }) {
+  const apiKey = requireApiKey();
+  const params = new URLSearchParams({
+    lat: String(lat),
+    lng: String(lng),
+    dist: String(radiusKm),
+    back: String(backDays),
+    maxResults: "10000",
+    includeProvisional: "false",
+  });
+  return fetchEbirdList(`${EBIRD_BASE}/data/obs/geo/recent?${params.toString()}`, apiKey);
+}
+
+// Locally notable (unusual) recent reports nearby — multiple records per species.
+async function fetchNotableObservations({ lat, lng, radiusKm, backDays }) {
+  const apiKey = requireApiKey();
+  const params = new URLSearchParams({
+    lat: String(lat),
+    lng: String(lng),
+    dist: String(radiusKm),
+    back: String(backDays),
+    maxResults: "10000",
+  });
+  return fetchEbirdList(`${EBIRD_BASE}/data/obs/geo/recent/notable?${params.toString()}`, apiKey);
+}
+
+module.exports = { fetchRecentObservations, fetchNearbySpecies, fetchNotableObservations };

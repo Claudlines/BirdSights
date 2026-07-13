@@ -44,18 +44,16 @@ body {
   margin-bottom: 2.5rem;
 }
 
+/* Stacked by default (mobile/tablet): search + Ask, then Explore, then
+   Saved Searches — the DOM order. Desktop switches to a 3-column grid. */
 .landing-content {
   display: grid;
-  grid-template-columns: 260px minmax(0, 580px) 260px;
+  grid-template-columns: 1fr;
   align-items: start;
-  justify-content: center;
+  justify-items: center;
   gap: 1.5rem;
   width: 100%;
   max-width: 1160px;
-}
-
-.landing-spacer {
-  /* Balances the saved-searches column so the search card stays centered */
 }
 
 .landing-main {
@@ -63,12 +61,35 @@ body {
   flex-direction: column;
   align-items: center;
   min-width: 0;
+  width: 100%;
+}
+
+.landing-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  width: 100%;
+}
+
+/* Desktop: Explore left, search form + Ask BirdSights center (the focus),
+   Saved Searches right. */
+@media (min-width: 1100px) {
+  .landing-content {
+    grid-template-columns: minmax(280px, 0.9fr) minmax(420px, 1.25fr) minmax(260px, 0.85fr);
+    grid-template-areas: "left main saved";
+    justify-items: stretch;
+    max-width: 1380px;
+  }
+  .landing-left { grid-area: left; }
+  .landing-main { grid-area: main; }
+  .saved-searches-panel { grid-area: saved; }
 }
 
 /* ─── Saved Searches Panel ───────────────────────────────────────── */
 .saved-searches-panel {
-  width: 260px;
-  flex-shrink: 0;
+  width: 100%;
+  max-width: 580px;
   background: #fff;
   border: 1px solid #dfe1e5;
   border-radius: 16px;
@@ -400,6 +421,213 @@ body {
 
 .btn-view-results:hover { background: #edf7f1; }
 .btn-view-results:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* ─── Explore Birds Near You ─────────────────────────────────────── */
+.explore-card {
+  width: 100%;
+  max-width: 580px;
+  background: #fff;
+  border: 1px solid #dfe1e5;
+  border-radius: 20px;
+  padding: 1.25rem 1.5rem 1.4rem;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+}
+
+.explore-card-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-bottom: 0.7rem;
+}
+
+.explore-card-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1a6c3a;
+}
+
+.explore-card-subtitle {
+  font-size: 0.78rem;
+  color: #80868b;
+}
+
+.explore-form-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.explore-form-row .form-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.btn-explore-gps {
+  padding: 0.6rem 0.8rem;
+  background: #fff;
+  color: #1a6c3a;
+  border: 1.5px solid #1a6c3a;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.btn-explore-gps:hover { background: #edf7f1; }
+.btn-explore-gps:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.explore-controls {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.55rem;
+}
+
+.explore-controls .form-select {
+  flex: 1;
+  min-width: 0;
+}
+
+.btn-explore {
+  padding: 0.6rem 1rem;
+  background: #1a6c3a;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.btn-explore:hover { background: #155730; }
+.btn-explore:disabled { background: #9aa0a6; cursor: not-allowed; }
+.btn-explore:focus-visible { outline: 3px solid #1a6c3a; outline-offset: 2px; }
+
+.explore-status {
+  margin: 0.7rem 0 0;
+  font-size: 0.82rem;
+  color: #5f6368;
+}
+
+.explore-error {
+  margin-top: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  background: #fdecea;
+  border: 1px solid #f5c6c0;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  color: #b3261e;
+  line-height: 1.45;
+}
+
+.explore-empty {
+  margin-top: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  background: #f6faf7;
+  border: 1px solid #cfe6d8;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  color: #202124;
+  line-height: 1.45;
+}
+
+.explore-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.85rem;
+}
+
+.explore-bird-card {
+  border: 1px solid #dfe1e5;
+  border-radius: 12px;
+  padding: 0.8rem;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3rem;
+}
+
+.explore-bird-img {
+  width: 100%;
+  height: 110px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.explore-bird-img-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f3f4;
+  border: 1px dashed #c4c7cc;
+  color: #80868b;
+  font-size: 0.72rem;
+}
+
+.explore-category-badge {
+  display: inline-block;
+  font-size: 0.66rem;
+  font-weight: 600;
+  padding: 0.12rem 0.55rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.explore-cat-frequent { background: #e6f4ea; color: #1a6c3a; }
+.explore-cat-occasional { background: #fef3e0; color: #b26a00; }
+.explore-cat-notable { background: #f3e8fd; color: #7c3aed; }
+.explore-cat-few { background: #eceff1; color: #546e7a; }
+
+.explore-bird-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #202124;
+}
+
+.explore-bird-sci {
+  font-size: 0.75rem;
+  font-style: italic;
+  color: #5f6368;
+}
+
+.explore-bird-reason {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #3c4043;
+  line-height: 1.4;
+}
+
+.explore-bird-date {
+  margin: 0;
+  font-size: 0.73rem;
+  color: #80868b;
+}
+
+.btn-explore-search {
+  margin-top: auto;
+  padding: 0.42rem 0.85rem;
+  background: #fff;
+  color: #1a6c3a;
+  border: 1.5px solid #1a6c3a;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-explore-search:hover { background: #edf7f1; }
+.btn-explore-search:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.explore-disclaimer {
+  margin: 0.75rem 0 0;
+  font-size: 0.72rem;
+  color: #80868b;
+}
 
 /* Two-column row for radius + timeframe */
 .form-row-2 {
@@ -1262,6 +1490,9 @@ body {
   .ask-card { padding: 1rem; }
   .ask-form { flex-direction: column; }
   .btn-ask { width: 100%; }
+  .explore-card { padding: 1rem; }
+  .explore-controls { flex-direction: column; }
+  .btn-explore { width: 100%; }
   .landing-logo { font-size: 2rem; }
   .form-row-2 { grid-template-columns: 1fr; }
   .controls-bar { gap: 0.75rem; }
@@ -1271,12 +1502,6 @@ body {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.55rem 0.75rem;
   }
-}
-
-@media (max-width: 760px) {
-  .landing-content { grid-template-columns: 1fr; }
-  .landing-spacer { display: none; }
-  .saved-searches-panel { width: 100%; max-width: 580px; }
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -1357,6 +1582,59 @@ body {
   border-color: #2d4a6e;
 }
 [data-theme="dark"] .btn-ask-action:hover { background: #0f2a1a; border-color: #4ade80; color: #4ade80; }
+
+/* Explore Birds Near You */
+[data-theme="dark"] .explore-card {
+  background: #1e2d3d;
+  border-color: #2d4a6e;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+}
+[data-theme="dark"] .explore-card-title { color: #4ade80; }
+[data-theme="dark"] .explore-card-subtitle { color: #94a3b8; }
+[data-theme="dark"] .btn-explore-gps {
+  background: #1e2d3d;
+  color: #4ade80;
+  border-color: #4ade80;
+}
+[data-theme="dark"] .btn-explore-gps:hover { background: #0f2a1a; }
+[data-theme="dark"] .btn-explore { background: #166534; }
+[data-theme="dark"] .btn-explore:hover { background: #14532d; }
+[data-theme="dark"] .btn-explore:disabled { background: #334155; color: #64748b; }
+[data-theme="dark"] .explore-status { color: #94a3b8; }
+[data-theme="dark"] .explore-error {
+  background: #3b1a1a;
+  border-color: #7f1d1d;
+  color: #fca5a5;
+}
+[data-theme="dark"] .explore-empty {
+  background: #0f2a1a;
+  border-color: #166534;
+  color: #e2e8f0;
+}
+[data-theme="dark"] .explore-bird-card {
+  background: #0f1923;
+  border-color: #2d4a6e;
+}
+[data-theme="dark"] .explore-bird-img-placeholder {
+  background: #0f1923;
+  border-color: #2d4a6e;
+  color: #64748b;
+}
+[data-theme="dark"] .explore-bird-name { color: #e2e8f0; }
+[data-theme="dark"] .explore-bird-sci { color: #94a3b8; }
+[data-theme="dark"] .explore-bird-reason { color: #cbd5e1; }
+[data-theme="dark"] .explore-bird-date { color: #94a3b8; }
+[data-theme="dark"] .explore-cat-frequent { background: #0f2a1a; color: #4ade80; }
+[data-theme="dark"] .explore-cat-occasional { background: #2d2410; color: #fbbf24; }
+[data-theme="dark"] .explore-cat-notable { background: #2a1a3b; color: #c4b5fd; }
+[data-theme="dark"] .explore-cat-few { background: #1e293b; color: #94a3b8; }
+[data-theme="dark"] .btn-explore-search {
+  background: #1e2d3d;
+  color: #4ade80;
+  border-color: #4ade80;
+}
+[data-theme="dark"] .btn-explore-search:hover { background: #0f2a1a; }
+[data-theme="dark"] .explore-disclaimer { color: #64748b; }
 
 /* Form labels */
 [data-theme="dark"] .form-group label { color: #94a3b8; }

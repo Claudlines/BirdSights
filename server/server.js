@@ -4,6 +4,7 @@ const cors = require("cors");
 const searchRoutes = require("./routes/searchRoutes");
 const speciesRoutes = require("./routes/speciesRoutes");
 const askRoutes = require("./routes/askRoutes");
+const exploreRoutes = require("./routes/exploreRoutes");
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.get("/api/health", (_req, res) => {
 app.use("/api", searchRoutes);
 app.use("/api", speciesRoutes);
 app.use("/api", askRoutes);
+app.use("/api", exploreRoutes);
 
 app.use((_req, res) => {
   res.status(404).json({ error: "Not found." });

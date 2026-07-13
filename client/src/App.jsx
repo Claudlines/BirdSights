@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import SearchForm from "./components/SearchForm";
 import AskBirdSights from "./components/AskBirdSights";
+import ExploreBirdsNearYou from "./components/ExploreBirdsNearYou";
 import ResultsPage from "./components/ResultsPage";
 import LoadingIndicator from "./components/LoadingIndicator";
 import ErrorMessage from "./components/ErrorMessage";
@@ -93,8 +94,7 @@ export default function App() {
       <p className="landing-tagline">Find recent bird sightings near you</p>
 
       <div className="landing-content">
-        <div className="landing-spacer" aria-hidden="true" />
-
+        {/* Center column on desktop; first in the stacked mobile order */}
         <div className="landing-main">
           <SearchForm
             onSearch={handleSearch}
@@ -117,6 +117,11 @@ export default function App() {
           )}
 
           <AskBirdSights onViewResults={handleSearch} searchLoading={loading} />
+        </div>
+
+        {/* Left column on desktop; third in the stacked mobile order */}
+        <div className="landing-left">
+          <ExploreBirdsNearYou onSearchBird={handleSearch} searchLoading={loading} />
         </div>
 
         <SavedSearchesPanel
