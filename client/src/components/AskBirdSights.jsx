@@ -6,7 +6,8 @@ const MAX_QUESTION_LENGTH = 300;
 const SUGGESTIONS = [
   "Have any American Woodcocks been reported near my location?",
   "Have there been any Barn Owls in ZIP code 10468 recently?",
-  "Has Cedar Waxwing been spotted near me recently?",
+  "What birds have been reported near me?",
+  "What do the colored pins mean?",
 ];
 
 // Questions like "near me" or "in my location" need the browser's current location
@@ -140,6 +141,22 @@ export default function AskBirdSights({ onViewResults, searchLoading }) {
     });
   }
 
+  // "Search this bird" from an explore-style answer: run the normal search
+  // for that species with the same interpreted location, radius, and timeframe.
+  function handleSearchExploreBird(bird) {
+    const p = response?.interpreted;
+    if (!p) return;
+    onViewResults({
+      speciesCode: bird.speciesCode,
+      commonName: bird.commonName,
+      location: p.location,
+      latitude: p.latitude,
+      longitude: p.longitude,
+      radiusKm: p.radiusKm,
+      backDays: p.backDays,
+    });
+  }
+
   const summary = response?.summary;
   const interpreted = response?.interpreted;
 
@@ -220,7 +237,56 @@ export default function AskBirdSights({ onViewResults, searchLoading }) {
         </div>
       )}
 
-      {response && !response.needsClarification && response.answer && (
+      {/* ── explain_feature answer: plain explanation, no search data ── */}
+      {response?.responseType === "explanation" && response.answer && (
+        <div className="ask-answer">
+          <p className="ask-answer-text">{response.answer}</p>
+        </div>
+      )}
+
+      {/* ── explore_location answer: suggested birds with categories ── */}
+      {response?.responseType === "explore" && !response.needsClarification && (
+        <div className="ask-answer">
+          <p className="ask-answer-text">{response.answer}</p>
+
+          {response.birds?.length > 0 && (
+            <div className="ask-explore-list">
+              {response.birds.map((bird) => (
+                <div className="ask-explore-item" key={bird.speciesCode}>
+                  <div className="ask-explore-item-info">
+                    <span className={`explore-category-badge explore-cat-${bird.category}`}>
+                      {bird.categoryLabel}
+                    </span>
+                    <span className="ask-explore-item-name">{bird.commonName}</span>
+                    <span className="ask-explore-item-meta">
+                      {bird.reason}
+                      {bird.mostRecentReportDate
+                        ? ` Most recent returned report: ${bird.mostRecentReportDate}.`
+                        : ""}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn-ask-action"
+                    onClick={() => handleSearchExploreBird(bird)}
+                    disabled={searchLoading}
+                  >
+                    Search this bird
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {response.limitationNote && (
+            <p className="ask-limitation">{response.limitationNote}</p>
+          )}
+        </div>
+      )}
+
+      {/* ── species_search answer: the structured bird activity card ── */}
+      {response && !response.needsClarification && response.answer &&
+        (!response.responseType || response.responseType === "species") && (
         <div className="ask-answer">
           <p className="ask-answer-text">{response.answer}</p>
 

@@ -74,10 +74,36 @@ function reasonFor(category, locationCount, backDays) {
   return `Recently returned from ${locationCount} nearby report locations in the last ${backDays} days.`;
 }
 
+// Internal result cache keyed by rounded coordinates. Both callers
+// (/api/explore and Ask BirdSights explore answers) fan out into multiple
+// eBird calls, so repeated requests for the same area reuse the last list
+// instead of hitting eBird again. The /api/explore route keeps its own
+// request-level cache on top of this — behavior there is unchanged.
+const LIST_CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
+const LIST_CACHE_MAX_ENTRIES = 100;
+const listCache = new Map();
+
+async function buildExploreList({ lat, lng, radiusKm, backDays }) {
+  const key = `${lat.toFixed(3)},${lng.toFixed(3)}|r:${radiusKm}|d:${backDays}`;
+
+  const hit = listCache.get(key);
+  if (hit && Date.now() - hit.time < LIST_CACHE_TTL_MS) {
+    return hit.birds;
+  }
+
+  const birds = await buildExploreListUncached({ lat, lng, radiusKm, backDays });
+
+  if (listCache.size >= LIST_CACHE_MAX_ENTRIES) {
+    listCache.delete(listCache.keys().next().value); // drop oldest
+  }
+  listCache.set(key, { time: Date.now(), birds });
+  return birds;
+}
+
 // Builds the Explore list: up to 10 birds across four beginner-friendly
 // categories, randomized so repeat visits feel fresh. Uses only the live
 // eBird API (no EBD).
-async function buildExploreList({ lat, lng, radiusKm, backDays }) {
+async function buildExploreListUncached({ lat, lng, radiusKm, backDays }) {
   const [allSpecies, notableRaw] = await Promise.all([
     fetchNearbySpecies({ lat, lng, radiusKm, backDays }),
     // Notable is a bonus category — if it fails, continue without it

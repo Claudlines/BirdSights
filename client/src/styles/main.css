@@ -374,6 +374,50 @@ body {
   color: #80868b;
 }
 
+/* Explore-style answer inside Ask BirdSights */
+.ask-explore-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid #cfe6d8;
+}
+
+.ask-explore-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.ask-explore-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.ask-explore-item-info .explore-category-badge {
+  align-self: flex-start;
+}
+
+.ask-explore-item-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #202124;
+}
+
+.ask-explore-item-meta {
+  font-size: 0.75rem;
+  color: #5f6368;
+  line-height: 1.35;
+}
+
+.ask-explore-item .btn-ask-action {
+  flex-shrink: 0;
+}
+
 .ask-actions {
   display: flex;
   flex-wrap: wrap;
@@ -1493,6 +1537,7 @@ body {
   .explore-card { padding: 1rem; }
   .explore-controls { flex-direction: column; }
   .btn-explore { width: 100%; }
+  .ask-explore-item { flex-direction: column; align-items: flex-start; }
   .landing-logo { font-size: 2rem; }
   .form-row-2 { grid-template-columns: 1fr; }
   .controls-bar { gap: 0.75rem; }
@@ -1576,6 +1621,9 @@ body {
 [data-theme="dark"] .ask-top-meta { color: #94a3b8; }
 [data-theme="dark"] .ask-limitation { color: #64748b; }
 [data-theme="dark"] .ask-disclaimer { color: #64748b; }
+[data-theme="dark"] .ask-explore-list { border-color: #14532d; }
+[data-theme="dark"] .ask-explore-item-name { color: #e2e8f0; }
+[data-theme="dark"] .ask-explore-item-meta { color: #94a3b8; }
 [data-theme="dark"] .btn-ask-action {
   background: #1e2d3d;
   color: #94a3b8;

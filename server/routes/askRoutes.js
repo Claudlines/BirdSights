@@ -10,7 +10,9 @@ const {
 const { loadTaxonomy, findBestSpeciesMatch } = require("../services/taxonomyService");
 const { geocodeLocation } = require("../services/geocodingService");
 const { fetchRecentObservations } = require("../services/ebirdService");
+const { buildExploreList } = require("../services/exploreService");
 const { formatAskAnswer } = require("../utils/formatAskAnswer");
+const { getExplanation } = require("../utils/askExplanations");
 const { isBroadLocationName, isBroadGeocodeResult } = require("../utils/broadLocations");
 
 const MAX_QUESTION_LENGTH = 300;
@@ -47,6 +49,9 @@ function broadLocationClarification(res, location) {
   );
 }
 
+const EXPLORE_LIMITATION_NOTE =
+  "These birds were recently reported near the selected location. Categories are based on recent returned eBird data and do not guarantee the bird is currently present.";
+
 router.post("/ask", askRateLimiter, async (req, res) => {
   // Optional GPS coordinates from the frontend for "near me" questions
   const hasGps =
@@ -58,7 +63,9 @@ router.post("/ask", askRateLimiter, async (req, res) => {
   if (rerun && typeof rerun === "object") {
     // Quick-action rerun (e.g. "Try 50 km"): the parameters were already
     // interpreted once, so skip the OpenAI call and search directly.
+    // Quick actions only exist on species answers.
     intent = {
+      actionType: "species_search",
       birdName: typeof rerun.birdName === "string" ? rerun.birdName.trim() : "",
       location: typeof rerun.location === "string" ? rerun.location.trim() : "",
       radiusKm: clampRadiusKm(rerun.radiusKm),
@@ -84,23 +91,35 @@ router.post("/ask", askRateLimiter, async (req, res) => {
       });
     }
 
-    // Step 1: interpret the question into structured search intent
+    // Step 1: classify the question and extract structured parameters
     try {
       intent = await interpretQuestion(question);
     } catch (err) {
       return res.status(502).json({ error: err.message });
     }
 
-    // Only honor the model's own clarifying question when it found no bird.
-    // If a bird was extracted, any hesitation is almost always about the
-    // location — our own checks below handle that and include the
-    // "use my current location" option.
-    if (intent.needsClarification && intent.clarifyingQuestion && !intent.birdName) {
-      return clarification(res, intent.clarifyingQuestion);
+    // The model asks its own clarifying question only for unrelated or
+    // unclear questions — location and bird gaps are handled below with
+    // our own clarifications (which include the current-location option).
+    if (intent.actionType === "clarification") {
+      return clarification(
+        res,
+        intent.clarifyingQuestion ||
+          "Could you tell me a bit more about what you'd like to find? For example: Has Cedar Waxwing been reported near Philadelphia recently?"
+      );
     }
   }
 
-  if (!intent.birdName) {
+  // ── explain_feature: deterministic answer, no eBird or geocoding calls ──
+  if (intent.actionType === "explain_feature") {
+    return res.json({
+      responseType: "explanation",
+      needsClarification: false,
+      answer: getExplanation(intent.explainTopic),
+    });
+  }
+
+  if (intent.actionType === "species_search" && !intent.birdName) {
     return clarification(
       res,
       "Which bird would you like me to check? For example: Cedar Waxwing or Northern Cardinal."
@@ -115,25 +134,7 @@ router.post("/ask", askRateLimiter, async (req, res) => {
     );
   }
 
-  // Step 2: reuse the existing taxonomy, geocoding, and eBird services
-  let taxonomy;
-  try {
-    taxonomy = await loadTaxonomy();
-  } catch (err) {
-    console.error("[Ask] Taxonomy unavailable:", err.message);
-    return res.status(503).json({
-      error: "The species list is temporarily unavailable. Please try again in a moment.",
-    });
-  }
-
-  const species = findBestSpeciesMatch(taxonomy, intent.birdName);
-  if (!species) {
-    return clarification(
-      res,
-      `BirdSights could not match "${intent.birdName}" to an eBird species. Could you try the bird's full common name, like "Cedar Waxwing"?`
-    );
-  }
-
+  // ── Location resolution (shared by species and explore answers) ──
   let searchLat, searchLng, locationLabel;
   let usedGps = false;
 
@@ -175,6 +176,61 @@ router.post("/ask", askRateLimiter, async (req, res) => {
     locationLabel = "your current location";
   }
 
+  // ── explore_location: reuse the Explore Birds Near You backend logic ──
+  if (intent.actionType === "explore_location") {
+    let birds;
+    try {
+      birds = await buildExploreList({
+        lat: searchLat,
+        lng: searchLng,
+        radiusKm: intent.radiusKm,
+        backDays: intent.daysBack,
+      });
+    } catch (err) {
+      const status = err.message.includes("not configured") ? 503 : 502;
+      return res.status(status).json({ error: err.message });
+    }
+
+    const answer =
+      birds.length > 0
+        ? `Here are ${birds.length} birds recently reported within ${intent.radiusKm} km of ${locationLabel} over the last ${intent.daysBack} days, based on recent returned eBird reports.`
+        : `No recent nearby eBird reports were returned within ${intent.radiusKm} km of ${locationLabel} over the last ${intent.daysBack} days. Try a larger radius, longer timeframe, or different location.`;
+
+    return res.json({
+      responseType: "explore",
+      needsClarification: false,
+      answer,
+      birds,
+      limitationNote: EXPLORE_LIMITATION_NOTE,
+      interpreted: {
+        location: usedGps ? null : intent.location,
+        latitude: usedGps ? searchLat : null,
+        longitude: usedGps ? searchLng : null,
+        radiusKm: intent.radiusKm,
+        backDays: intent.daysBack,
+      },
+    });
+  }
+
+  // ── species_search: the existing specific-bird flow ──
+  let taxonomy;
+  try {
+    taxonomy = await loadTaxonomy();
+  } catch (err) {
+    console.error("[Ask] Taxonomy unavailable:", err.message);
+    return res.status(503).json({
+      error: "The species list is temporarily unavailable. Please try again in a moment.",
+    });
+  }
+
+  const species = findBestSpeciesMatch(taxonomy, intent.birdName);
+  if (!species) {
+    return clarification(
+      res,
+      `BirdSights could not match "${intent.birdName}" to an eBird species. Could you try the bird's full common name, like "Cedar Waxwing"?`
+    );
+  }
+
   let results;
   try {
     results = await fetchRecentObservations({
@@ -189,7 +245,7 @@ router.post("/ask", askRateLimiter, async (req, res) => {
     return res.status(status).json({ error: err.message });
   }
 
-  // Step 3: deterministic plain-English summary with safe wording
+  // Deterministic plain-English summary with safe wording
   const { answer, summary, limitationNote } = formatAskAnswer({
     commonName: species.commonName,
     locationLabel,
@@ -199,6 +255,7 @@ router.post("/ask", askRateLimiter, async (req, res) => {
   });
 
   return res.json({
+    responseType: "species",
     needsClarification: false,
     answer,
     limitationNote,
