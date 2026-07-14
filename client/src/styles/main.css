@@ -310,6 +310,20 @@ body {
 
 .ask-answer-text { margin: 0; }
 
+/* Species-answer header: interpreted bird image + name */
+.ask-species-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+}
+
+.ask-species-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #202124;
+}
+
 .ask-answer-details {
   margin-top: 0.6rem;
   padding-top: 0.6rem;
@@ -1651,6 +1665,7 @@ body {
 [data-theme="dark"] .ask-disclaimer { color: #64748b; }
 [data-theme="dark"] .ask-explore-list { border-color: #14532d; }
 [data-theme="dark"] .ask-explore-item-name { color: #e2e8f0; }
+[data-theme="dark"] .ask-species-name { color: #e2e8f0; }
 [data-theme="dark"] .ask-explore-item-meta { color: #94a3b8; }
 [data-theme="dark"] .ask-explore-item-img-placeholder {
   background: #0f1923;

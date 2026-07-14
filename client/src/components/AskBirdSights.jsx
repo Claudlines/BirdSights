@@ -160,6 +160,15 @@ export default function AskBirdSights({ onViewResults, searchLoading }) {
   const summary = response?.summary;
   const interpreted = response?.interpreted;
 
+  // Local image for the interpreted bird on species answers (same helper the
+  // Explore cards use); null when the response has no specific bird.
+  const speciesImage = interpreted?.commonName
+    ? getBirdImage({
+        commonName: interpreted.commonName,
+        speciesCode: interpreted.speciesCode,
+      })
+    : null;
+
   return (
     <div className="ask-card">
       <div className="ask-card-header">
@@ -311,6 +320,27 @@ export default function AskBirdSights({ onViewResults, searchLoading }) {
       {response && !response.needsClarification && response.answer &&
         (!response.responseType || response.responseType === "species") && (
         <div className="ask-answer">
+          {interpreted?.commonName && (
+            <div className="ask-species-header">
+              {speciesImage ? (
+                <img
+                  className="ask-explore-item-img"
+                  src={speciesImage}
+                  alt={`${interpreted.commonName} bird image`}
+                  loading="lazy"
+                />
+              ) : (
+                <div
+                  className="ask-explore-item-img ask-explore-item-img-placeholder"
+                  aria-hidden="true"
+                >
+                  <span>Pending</span>
+                </div>
+              )}
+              <span className="ask-species-name">{interpreted.commonName}</span>
+            </div>
+          )}
+
           <p className="ask-answer-text">{response.answer}</p>
 
           {summary && (
