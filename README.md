@@ -1,22 +1,27 @@
 # BirdSights
 
-A beginner-friendly bird discovery web application that helps birdwatchers quickly locate recent eBird reports of a selected bird species near a chosen location.
+A beginner-friendly bird discovery web application that helps birdwatchers quickly locate recent eBird reports of a selected bird species near a chosen location — and helps beginners discover birds even when they don't know any bird names.
 
 > **Penn State IST 440W Capstone Project**
 
 BirdSights is **not a replacement for eBird**. It is a lightweight discovery layer on top of eBird data.
 
+**Live app:** [https://birdsights.vercel.app](https://birdsights.vercel.app)
+**Backend API:** [https://birdsights-api.onrender.com](https://birdsights-api.onrender.com)
+**GitHub:** [https://github.com/Claudlines/BirdSights](https://github.com/Claudlines/BirdSights)
+
 ---
 
 ## Project Overview
 
-BirdSights answers the question:
-**"Has this bird been reported near me recently, and where?"**
+BirdSights answers questions like:
+**"Has this bird been reported near me recently, and where?"** — and, for beginners — **"I don't know any birds. What birds are reported near me?"**
 
-Users can either:
+Users can:
 
-1. **Standard search** — select a bird species, specify a location (manually or via GPS), choose a search radius and timeframe, and view recent eBird sighting locations on an interactive map; or
-2. **Ask BirdSights** — type a plain-English question like *"Has Cedar Waxwing been spotted near me recently?"* and get a safely worded plain-English answer built from the same eBird data.
+1. **Standard search** — select a bird species, specify a location (manually or via GPS), choose a search radius and timeframe, and view recent eBird sighting locations on an interactive map;
+2. **Ask BirdSights** — type a plain-English question and get a safely worded answer built from the same eBird data; or
+3. **Explore Birds Near You** — enter a location (or use current location) and get a beginner-friendly list of birds recently reported nearby.
 
 ---
 
@@ -48,25 +53,43 @@ Users can either:
 - Saved searches stored locally in the browser using localStorage, with one-click rerun
 - Search inputs preserved when returning from the results page
 - Responsive layout (desktop + mobile), dark mode, BirdSights logo and favicon
+- Balanced desktop landing layout — Explore Birds Near You (left), standard search + Ask BirdSights (center), Saved Searches (right) — stacking cleanly on mobile
 
-### Ask BirdSights (natural-language search)
+### Explore Birds Near You (July 12 enhancement)
 
-A landing-page AI assistant that accepts questions such as:
+A beginner-focused discovery feature for users who do not know bird names.
 
-- *"Have any American Woodcocks been reported near my location?"*
-- *"Have there been any Barn Owls in ZIP code 10468 recently?"*
-- *"Has Cedar Waxwing been spotted near me recently?"*
+- Enter a city, ZIP code, park, town, or address — or use current location — plus a radius (default 25 km) and timeframe (default last 30 days).
+- BirdSights returns up to 10 birds recently reported nearby, organized into beginner-friendly categories:
+  - **Frequently reported nearby** — 10+ returned report locations
+  - **Occasionally reported nearby** — 3–9 returned report locations
+  - **Notable or uncommon nearby** — reports flagged as notable by eBird
+  - **Few recent reports** — 1–2 returned report locations
+- Categories are based on **recent returned eBird data** — they do not measure true abundance or true rarity, and they do not guarantee any bird is currently present.
+- Each suggested bird shows a local image when available, or a "Pending" placeholder.
+- **"Search this bird"** opens the normal BirdSights results page (map, freshness pins, Bird Activity Summary) using the same location, radius, and timeframe.
+- Bird selection is randomized within categories so repeat visits feel fresh.
+- Powered by a new `GET /api/explore` endpoint with **short-term in-memory caching (about 10 minutes)** to reduce repeated eBird API calls. No database is used, and **EBD is not used** for this feature.
 
-How it works:
+### Ask BirdSights (AI-assisted discovery agent)
 
-- The backend uses the **OpenAI API only to interpret the question** — extracting the bird, location, radius, timeframe, and intent. OpenAI does **not** create any bird data.
-- The backend then reuses the existing eBird, taxonomy, and geocoding services to run the actual search.
-- The answer is deterministically formatted with safe wording and always includes a limitation note.
-- The structured answer card shows nearby sighting locations, the most recent returned report, the closest returned report, and up to three top returned locations.
-- "View map results" opens the interpreted search on the normal results page; quick actions ("Try 50 km", "Try last 7 days") rerun the search without another OpenAI call.
-- **Current-location questions** ("near me", "in my location") prompt a "Use my current location" button that uses browser geolocation.
-- **OpenAI is used only on the backend. `OPENAI_API_KEY` is never exposed to the frontend and is never committed.**
-- If `OPENAI_API_KEY` is not configured, the rest of the app keeps working and Ask BirdSights returns a friendly "not configured" message.
+A landing-page natural-language assistant. The backend uses the **OpenAI API only to interpret and route the question** — OpenAI never creates bird data. Each question is classified into one of four actions:
+
+| Action | When it applies | Example |
+|--------|-----------------|---------|
+| `species_search` | A specific bird near a place | *"Have there been any Barn Owls in ZIP code 10468 recently?"* |
+| `explore_location` | The user doesn't know bird names and wants suggestions | *"I don't know any birds. What birds are reported near me?"* |
+| `explain_feature` | The user asks what an app feature means | *"What do the colored pins mean?"* |
+| `clarification` | Incomplete, unrelated, or broad/ambiguous input | *"What birds are in New Jersey?"* |
+
+How the answers work:
+
+- **Species answers** show a structured card: nearby sighting locations, most recent returned report, closest returned report, top returned locations, a limitation note, "View map results", and quick actions ("Try 50 km", "Try last 7 days") that rerun without another OpenAI call.
+- **Explore answers** show suggested birds with category labels, reasons, local images or "Pending" placeholders, and a per-bird "Search this bird" button — reusing the same backend logic as `/api/explore`.
+- **Explanation answers** are deterministic, safely worded texts (freshness pin colors, category labels, and report limitations such as whether a bird is guaranteed to be present) — no eBird call is needed.
+- **Current-location questions** ("near me", "my location") prompt a "Use my current location" button that uses browser geolocation.
+- `POST /api/ask` is **rate-limited** (default 20 requests per 15 minutes per IP) to protect the paid OpenAI endpoint; exceeding it returns a friendly HTTP 429 message.
+- **`OPENAI_API_KEY` is backend-only — never exposed to the frontend and never committed.** If it is not configured, Ask BirdSights returns a friendly "not configured" message and every other feature keeps working.
 - The card includes an AI/data disclaimer: Ask BirdSights uses AI to interpret the question, then searches recent eBird data — verify important details with the linked eBird checklists.
 
 ### Broad-location clarification
@@ -86,11 +109,11 @@ Pins are colored by the age of the returned report:
 | Red       | Older report   | 15+ days old        |
 | Blue      | Selected location | —                |
 
-**These colors show how old the returned report is only. They do not indicate the likelihood or probability that the bird is still present.** The map legend states this, and result cards show matching freshness badges.
+**These colors show how old the returned report is only. They do not indicate the likelihood that the bird is still present.** The map legend states this, and result cards show matching freshness badges. The selected marker turns blue, and the search radius boundary is drawn around the search center.
 
-### Rate limiting
+### Bird Activity Summary
 
-`POST /api/ask` is rate-limited (default **20 requests per 15 minutes per IP**) to protect the paid OpenAI endpoint. Exceeding the limit returns a friendly HTTP 429 message. The normal search and species endpoints are not rate-limited.
+The results page interprets recent returned eBird activity for the searched bird using safe labels based on the number of returned results: **No recent nearby reports** (0), **Rarely reported nearby** (1–2), **Occasionally reported nearby** (3–9), and **Frequently reported nearby** (10+). It also shows the most recent returned report, the closest returned report, the search radius, and the timeframe. These labels reflect recent returned eBird reports — not true abundance and not guaranteed presence.
 
 ---
 
@@ -126,8 +149,10 @@ BirdSightsProject/
       api/
         searchApi.js
         askApi.js
+        exploreApi.js
       components/
         AskBirdSights.jsx
+        ExploreBirdsNearYou.jsx
         BirdAutocomplete.jsx
         BirdActivitySummary.jsx
         BirdImageCard.jsx
@@ -160,12 +185,15 @@ BirdSightsProject/
       searchRoutes.js
       speciesRoutes.js
       askRoutes.js
+      exploreRoutes.js
     services/
       ebirdService.js
       geocodingService.js
       taxonomyService.js
       openaiService.js
+      exploreService.js
     utils/
+      askExplanations.js
       broadLocations.js
       distance.js
       formatAskAnswer.js
@@ -185,7 +213,8 @@ BirdSightsProject/
 | `/api/health`  | GET  | Health check |
 | `/api/species` | GET  | eBird taxonomy autocomplete search |
 | `/api/search`  | GET  | Recent nearby eBird observations for a species |
-| `/api/ask`     | POST | Ask BirdSights natural-language question (rate-limited) |
+| `/api/ask`     | POST | Ask BirdSights natural-language question with action routing (rate-limited) |
+| `/api/explore` | GET  | Beginner bird suggestions near a location (short-term in-memory cache) |
 
 ---
 
@@ -321,22 +350,25 @@ This ensures the backend only accepts requests from the approved frontend origin
 
 ---
 
-## eBird Endpoint Used
+## eBird Endpoints Used
+
+All bird data comes from the **live eBird API v2** (no EBD downloads are used):
 
 ```
-GET https://api.ebird.org/v2/data/obs/geo/recent/{speciesCode}
+GET https://api.ebird.org/v2/data/obs/geo/recent/{speciesCode}   # per-species recent nearby (search, Ask, Explore counts)
+GET https://api.ebird.org/v2/data/obs/geo/recent                 # all-species recent nearby (Explore species pool)
+GET https://api.ebird.org/v2/data/obs/geo/recent/notable         # locally notable recent reports (Explore "Notable or uncommon nearby")
+GET https://api.ebird.org/v2/ref/taxonomy/ebird                  # species taxonomy (autocomplete + name matching)
 ```
 
-Parameters:
+Common parameters:
 - `lat`, `lng` — search center coordinates
 - `dist` — radius in kilometers (max 50)
 - `back` — 7, 14, or 30 days depending on the selected timeframe
 - `maxResults=10000`
-- `includeProvisional=false`
+- `includeProvisional=false` (search endpoints)
 
 Header: `x-ebirdapitoken: <EBIRD_API_KEY>`
-
-The eBird taxonomy reference endpoint is also used for species autocomplete.
 
 ---
 
@@ -395,25 +427,42 @@ The backend sets `trust proxy` for Render so the rate limiter sees real client I
 
 ## Important Limitations
 
-- **BirdSights shows the most recent eBird report for a bird at each returned location within the selected timeframe.** It does not show every checklist from each location.
-- It does not prove true bird abundance.
+- **BirdSights uses live eBird API recent report data.** It shows the most recent returned eBird report for a bird at each returned location within the selected timeframe.
+- It does not show every checklist from each location.
+- It does not prove true abundance.
+- It does not prove true rarity — Explore categories and activity labels describe report frequency in recent returned data only.
 - It does not guarantee the bird is currently present.
-- Broad/statewide search is not fully supported yet — the app is radius-based, so broad locations trigger a clarification instead of a search.
+- Broad/statewide search is not fully supported yet — the live app is radius-based, so broad locations trigger a clarification instead of a search.
 - Map pin colors and freshness badges reflect returned report age only, not sighting likelihood.
 - The app depends on public eBird API availability and rate limits.
-- **OpenAI is only used to interpret Ask BirdSights questions. It does not create bird data** — all sighting data comes from eBird.
+- **OpenAI is used to interpret questions and route actions in Ask BirdSights. It does not create bird data** — all sighting data comes from eBird.
+- **EBD historical analytics are not included in the July 12 live implementation** (see Future Work).
 - Timeframes are preset recent windows (7, 14, 30 days), not custom date ranges.
-- The curated bird image library includes a starter set of species; other species display "Image pending."
+- The curated bird image library includes a starter set of species; other species display a "Pending" placeholder.
 - Saved searches are stored locally in the browser and are not synced across devices.
 - Nominatim geocoding is public and rate-limited, suitable for a student prototype.
 - There are no user accounts, no database, and user questions are not stored.
 
 ---
 
-## Future Enhancement Ideas
+## Future Work
 
-- True statewide/region search using eBird region data
+### Planned EBD (eBird Basic Dataset) expansion
+
+EBD historical analytics are planned as a future expansion. Download requests have been submitted for **Pennsylvania, New York, New Jersey, and the Bahamas**. Once the downloads are available, BirdSights could add historical analytics such as:
+
+- Seasonal reporting patterns
+- Monthly activity trends
+- Historical context for recent reports
+- Regional comparisons
+- Broader historical bird activity summaries
+
+**EBD is not used in the current July 12 live implementation** — every feature runs on the live eBird API.
+
+### Other future ideas
+
+- True region/statewide search using appropriate eBird region data
 - Full checklist-history analysis
 - More formal birder usability testing
 - Expanded bird image library
-- More advanced activity and seasonal trend analysis
+- More advanced seasonal trend analysis
