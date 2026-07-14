@@ -391,10 +391,38 @@ body {
   gap: 0.75rem;
 }
 
+.ask-explore-item-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.ask-explore-item-img {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.ask-explore-item-img-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f3f4;
+  border: 1px dashed #c4c7cc;
+  color: #80868b;
+  font-size: 0.6rem;
+  text-align: center;
+}
+
 .ask-explore-item-info {
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
+  flex: 1;
   min-width: 0;
 }
 
@@ -1624,6 +1652,11 @@ body {
 [data-theme="dark"] .ask-explore-list { border-color: #14532d; }
 [data-theme="dark"] .ask-explore-item-name { color: #e2e8f0; }
 [data-theme="dark"] .ask-explore-item-meta { color: #94a3b8; }
+[data-theme="dark"] .ask-explore-item-img-placeholder {
+  background: #0f1923;
+  border-color: #2d4a6e;
+  color: #64748b;
+}
 [data-theme="dark"] .btn-ask-action {
   background: #1e2d3d;
   color: #94a3b8;

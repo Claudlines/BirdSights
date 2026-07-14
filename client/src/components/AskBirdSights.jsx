@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { askBirdSights, rerunAskSearch } from "../api/askApi";
+import { getBirdImage } from "../utils/birdImages";
 
 const MAX_QUESTION_LENGTH = 300;
 
 const SUGGESTIONS = [
   "Have any American Woodcocks been reported near my location?",
   "Have there been any Barn Owls in ZIP code 10468 recently?",
-  "What birds have been reported near me?",
-  "What do the colored pins mean?",
+  "I don't know any birds. What birds are reported near me?",
 ];
 
 // Questions like "near me" or "in my location" need the browser's current location
@@ -251,30 +251,53 @@ export default function AskBirdSights({ onViewResults, searchLoading }) {
 
           {response.birds?.length > 0 && (
             <div className="ask-explore-list">
-              {response.birds.map((bird) => (
-                <div className="ask-explore-item" key={bird.speciesCode}>
-                  <div className="ask-explore-item-info">
-                    <span className={`explore-category-badge explore-cat-${bird.category}`}>
-                      {bird.categoryLabel}
-                    </span>
-                    <span className="ask-explore-item-name">{bird.commonName}</span>
-                    <span className="ask-explore-item-meta">
-                      {bird.reason}
-                      {bird.mostRecentReportDate
-                        ? ` Most recent returned report: ${bird.mostRecentReportDate}.`
-                        : ""}
-                    </span>
+              {response.birds.map((bird) => {
+                const imageSrc = getBirdImage({
+                  commonName: bird.commonName,
+                  speciesCode: bird.speciesCode,
+                });
+                return (
+                  <div className="ask-explore-item" key={bird.speciesCode}>
+                    <div className="ask-explore-item-main">
+                      {imageSrc ? (
+                        <img
+                          className="ask-explore-item-img"
+                          src={imageSrc}
+                          alt={`${bird.commonName} bird image`}
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div
+                          className="ask-explore-item-img ask-explore-item-img-placeholder"
+                          aria-hidden="true"
+                        >
+                          <span>Pending</span>
+                        </div>
+                      )}
+                      <div className="ask-explore-item-info">
+                        <span className={`explore-category-badge explore-cat-${bird.category}`}>
+                          {bird.categoryLabel}
+                        </span>
+                        <span className="ask-explore-item-name">{bird.commonName}</span>
+                        <span className="ask-explore-item-meta">
+                          {bird.reason}
+                          {bird.mostRecentReportDate
+                            ? ` Most recent returned report: ${bird.mostRecentReportDate}.`
+                            : ""}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn-ask-action"
+                      onClick={() => handleSearchExploreBird(bird)}
+                      disabled={searchLoading}
+                    >
+                      Search this bird
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    className="btn-ask-action"
-                    onClick={() => handleSearchExploreBird(bird)}
-                    disabled={searchLoading}
-                  >
-                    Search this bird
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
