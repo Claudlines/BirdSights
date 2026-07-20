@@ -22,7 +22,12 @@ function readAll() {
 }
 
 function writeAll(list) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  } catch {
+    // Storage may be disabled, unavailable, or full (private mode, quota, etc.).
+    // Saved searches still work in-memory for this session; they just won't persist.
+  }
 }
 
 export function getSavedSearches() {

@@ -17,14 +17,23 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [savedSearches, setSavedSearches] = useState(() => getSavedSearches());
-  const [darkMode, setDarkMode] = useState(
-    () => localStorage.getItem("bnm-theme") === "dark"
-  );
+  const [darkMode, setDarkMode] = useState(() => {
+    try {
+      return localStorage.getItem("bnm-theme") === "dark";
+    } catch {
+      // Storage may be disabled or unavailable — default to light mode.
+      return false;
+    }
+  });
 
   // Apply theme to <html> so all CSS dark-mode selectors work
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", darkMode ? "dark" : "light");
-    localStorage.setItem("bnm-theme", darkMode ? "dark" : "light");
+    try {
+      localStorage.setItem("bnm-theme", darkMode ? "dark" : "light");
+    } catch {
+      // Ignore storage failures — the theme is still applied for this session.
+    }
   }, [darkMode]);
 
   function toggleDark() { setDarkMode((m) => !m); }
