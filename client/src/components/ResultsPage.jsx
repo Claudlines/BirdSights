@@ -82,6 +82,13 @@ export default function ResultsPage({ initialData, searchParams, onBack, darkMod
         </button>
       </header>
 
+      {/* ── Large-result safety notice (only when the search was capped) ── */}
+      {data?.capped && data?.capNotice && (
+        <p className="results-cap-notice" role="status">
+          {data.capNotice}
+        </p>
+      )}
+
       {/* ── Summary metrics ───────────────────────────────────────────── */}
       <SummaryPanel data={data} searchParams={searchParams} />
 

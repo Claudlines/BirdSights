@@ -7,6 +7,7 @@ const {
   isBroadGeocodeResult,
   broadLocationSearchMessage,
 } = require("../utils/broadLocations");
+const { dataRateLimiter } = require("../middleware/rateLimit");
 
 // ── Simple in-memory cache ──────────────────────────────────────────
 // One Explore request fans out into multiple eBird calls, so repeated
@@ -35,7 +36,7 @@ function setCached(key, payload) {
   exploreCache.set(key, { time: Date.now(), payload });
 }
 
-router.get("/explore", async (req, res) => {
+router.get("/explore", dataRateLimiter, async (req, res) => {
   const { location, latitude, longitude } = req.query;
 
   const radiusKm = parseInt(req.query.radiusKm ?? "25", 10);

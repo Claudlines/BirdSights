@@ -8,10 +8,24 @@ const {
   isBroadGeocodeResult,
   broadLocationSearchMessage,
 } = require("../utils/broadLocations");
+const { dataRateLimiter } = require("../middleware/rateLimit");
 
 const DEFAULT_BACK_DAYS = 7;
 
-router.get("/search", async (req, res) => {
+// Safety cap on how many returned reports (and therefore map pins) a single
+// search sends to the frontend. A common bird over a wide radius and long
+// timeframe in a dense area can return a very large set; rendering one marker
+// per report would bloat the payload and overload the map. When exceeded we
+// keep the most recent reports so the freshest sightings and pins are shown.
+const MAX_RETURNED_REPORTS = 500;
+
+function obsTimeMs(dateStr) {
+  if (!dateStr) return 0;
+  const t = new Date(String(dateStr).replace(" ", "T")).getTime();
+  return Number.isNaN(t) ? 0 : t;
+}
+
+router.get("/search", dataRateLimiter, async (req, res) => {
   const { speciesCode, location, latitude, longitude, radiusKm, backDays } = req.query;
 
   // Resolve backDays: default to 7 if not provided, validated below if provided
@@ -70,6 +84,16 @@ router.get("/search", async (req, res) => {
     return res.status(status).json({ error: err.message });
   }
 
+  // Apply the map/payload safety cap. Keep the most recent returned reports so
+  // the newest sightings and freshest pins survive when a search is trimmed.
+  const totalReturnedReports = observations.length;
+  const capped = totalReturnedReports > MAX_RETURNED_REPORTS;
+  if (capped) {
+    observations = [...observations]
+      .sort((a, b) => obsTimeMs(b.observationDateTime) - obsTimeMs(a.observationDateTime))
+      .slice(0, MAX_RETURNED_REPORTS);
+  }
+
   // Return all raw normalized observations — grouping, sorting, and pagination
   // are handled client-side so the frontend can switch modes without re-fetching.
   return res.json({
@@ -78,8 +102,14 @@ router.get("/search", async (req, res) => {
     radiusKm: parseInt(radiusKm, 10),
     backDays: resolvedBackDays,
     results: observations,
+    totalReturnedReports,
+    returnedReportCount: observations.length,
+    capped,
+    capNotice: capped
+      ? `This search returned ${totalReturnedReports} recent eBird reports. To keep the map responsive, BirdSights is showing the ${MAX_RETURNED_REPORTS} most recent returned reports.`
+      : null,
     message:
-      observations.length === 0
+      totalReturnedReports === 0
         ? "No recent eBird reports were found for this species within the selected radius and timeframe. Try a larger radius, longer timeframe, or different location."
         : null,
   });
