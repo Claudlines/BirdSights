@@ -59,7 +59,10 @@ BirdSights needs a free **eBird API key / access token** to look up bird reports
 
 1. **Create or log into an eBird account** at [ebird.org](https://ebird.org).
 2. Go to the **eBird Data Access** page: [https://ebird.org/ebird/downloadMyData](https://ebird.org/ebird/downloadMyData)
-3. On that page, find the **"eBird API"** section. *(The example/screenshot of this page shows an **"eBird API"** section with a **"Request access"** button.)*
+3. On that page, find the **"eBird API"** section. The screenshot below shows this page — the **"eBird API"** section with a **"Request access"** button (circled in red):
+
+   ![eBird Data Access page showing the eBird API section and the Request access button](docs/images/ebird-api-request-access.jpg)
+
 4. Click **"Request access."**
 5. Wait for access to be granted. Once it is, eBird provides your **API key / access token**.
 6. Copy that key/token into `server/.env` as the `EBIRD_API_KEY` value:
