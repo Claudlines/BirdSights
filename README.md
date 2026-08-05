@@ -16,33 +16,25 @@ BirdSights is **not a replacement for eBird**. It is a lightweight discovery lay
 
 New here? This is the fastest way to run BirdSights on your own computer. First install **Node.js 18 or newer** from [nodejs.org](https://nodejs.org) (this also installs `npm`). You can confirm it worked by running `node -v` in a terminal.
 
-### Step 1 — Get the code and install everything
+### Step 1 — Get the code, install everything, and create your config files
 
 ```bash
 git clone https://github.com/Claudlines/BirdSights.git
 cd BirdSights
 npm install
 npm run install:all
+npm run setup
 ```
 
 - `npm install` sets up the one-command runner (`concurrently`) in the project root.
 - `npm run install:all` installs the backend **and** frontend dependencies for you.
+- `npm run setup` creates your local `server/.env` and `client/.env` from the safe example files. It **never overwrites** a `.env` file you already have, so it's safe to re-run.
 
-### Step 2 — Create your environment files (required before running)
+### Step 2 — Add your API keys to `server/.env`
 
-BirdSights needs two small config files that hold settings and your API keys. For security these are **not** included in the download — you create them yourself. They stay on your computer and are ignored by Git.
+`npm run setup` already created the two `.env` files from safe templates (`server/.env` and `client/.env`). These files hold your settings and keys, stay on your computer, and are ignored by Git.
 
-> On Windows **Command Prompt**, use `copy` instead of `cp`. **PowerShell** and **Git Bash** accept `cp`.
-
-**Backend — `server/.env`:**
-
-Copy the example file, then edit it:
-
-```bash
-cp server/.env.example server/.env
-```
-
-Open `server/.env` and replace the `your_..._here` placeholders with your own keys. It should look like this:
+You still need to paste in **your own eBird API key**. Open `server/.env` and replace the `your_..._here` placeholders. It looks like this:
 
 ```
 PORT=5000
@@ -57,23 +49,17 @@ DATA_RATE_LIMIT_MAX=100
 DATA_RATE_LIMIT_WINDOW_MINUTES=15
 ```
 
-- Get a free **eBird API key** at [ebird.org/api/keygen](https://ebird.org/api/keygen) — required for bird search.
+- Get a free **eBird API key** at [ebird.org/api/keygen](https://ebird.org/api/keygen) — **required** for bird search.
 - `OPENAI_API_KEY` is **optional** — it only powers Ask BirdSights. Without it, every other feature still works.
 - The four `RATE_LIMIT` lines are **optional**; if you leave them out, the defaults shown above are used automatically.
+- `client/.env` is already set to `VITE_API_BASE_URL=http://localhost:5000` — no change needed for local development.
+- **Never commit your `.env` files.** They hold private keys and are already gitignored.
 
-**Frontend — `client/.env`:**
+> **Prefer to do it by hand?** You can copy the templates yourself instead of running `npm run setup`:
+> `cp server/.env.example server/.env` and `cp client/.env.example client/.env`.
+> On Windows **Command Prompt** use `copy` instead of `cp`; **PowerShell** and **Git Bash** accept `cp`.
 
-Copy the example, or create `client/.env` with this one line:
-
-```bash
-cp client/.env.example client/.env
-```
-
-```
-VITE_API_BASE_URL=http://localhost:5000
-```
-
-This tells the frontend where to reach your local backend. No changes are needed for local development.
+> **Demo note:** for a live demo the `.env` files may already exist with keys filled in — `npm run setup` will detect them and leave them untouched. Do **not** display the contents of your `.env` files on screen, since they contain your private keys.
 
 ### Step 3 — Run the app (one command)
 
