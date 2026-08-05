@@ -49,17 +49,43 @@ DATA_RATE_LIMIT_MAX=100
 DATA_RATE_LIMIT_WINDOW_MINUTES=15
 ```
 
-- Get a free **eBird API key** at [ebird.org/api/keygen](https://ebird.org/api/keygen) — **required** for bird search.
-- `OPENAI_API_KEY` is **optional** — it only powers Ask BirdSights. Without it, every other feature still works.
 - The four `RATE_LIMIT` lines are **optional**; if you leave them out, the defaults shown above are used automatically.
 - `client/.env` is already set to `VITE_API_BASE_URL=http://localhost:5000` — no change needed for local development.
 - **Never commit your `.env` files.** They hold private keys and are already gitignored.
+
+#### Getting your eBird API key (required)
+
+BirdSights needs a free **eBird API key / access token** to look up bird reports. To get one:
+
+1. **Create or log into an eBird account** at [ebird.org](https://ebird.org).
+2. Go to the **eBird Data Access** page: [https://ebird.org/ebird/downloadMyData](https://ebird.org/ebird/downloadMyData)
+3. On that page, find the **"eBird API"** section. *(The example/screenshot of this page shows an **"eBird API"** section with a **"Request access"** button.)*
+4. Click **"Request access."**
+5. Wait for access to be granted. Once it is, eBird provides your **API key / access token**.
+6. Copy that key/token into `server/.env` as the `EBIRD_API_KEY` value:
+
+   ```
+   EBIRD_API_KEY=their_ebird_api_key_here
+   ```
+
+   (Replace `their_ebird_api_key_here` with your actual eBird key/token.)
+
+> **Don't confuse the two kinds of eBird access.** The **eBird Basic Dataset (EBD)** is a large historical download and is **not** needed to run BirdSights. What you need here is the **eBird API key / access token** from the **"eBird API"** section — *not* the EBD download.
+
+#### OpenAI API key (optional — only for Ask BirdSights)
+
+`OPENAI_API_KEY` is **optional**. It is only needed for the **Ask BirdSights** assistant; standard search and Explore Birds Near You work fully without it.
+
+1. Create an API key from the **OpenAI Platform** dashboard: [platform.openai.com](https://platform.openai.com).
+2. Paste it into `server/.env` as the `OPENAI_API_KEY` value.
+3. **Never** show it on screen, commit it to GitHub, or place it in any `client/` (frontend) file — API keys belong only in the backend `server/.env`.
+4. If `OPENAI_API_KEY` is missing, the rest of BirdSights still works normally; only **Ask BirdSights** shows a friendly "not configured" message.
 
 > **Prefer to do it by hand?** You can copy the templates yourself instead of running `npm run setup`:
 > `cp server/.env.example server/.env` and `cp client/.env.example client/.env`.
 > On Windows **Command Prompt** use `copy` instead of `cp`; **PowerShell** and **Git Bash** accept `cp`.
 
-> **Demo note:** for a live demo the `.env` files may already exist with keys filled in — `npm run setup` will detect them and leave them untouched. Do **not** display the contents of your `.env` files on screen, since they contain your private keys.
+> **Recorded demo note:** For a recorded walkthrough, **do not open `server/.env` on screen** — it contains private API keys. It is fine to explain that the file has **already been configured** on the demo computer. A TA or new developer following this README will need to use **their own** eBird API key and optional OpenAI API key. (`npm run setup` leaves any existing `.env` untouched, so a pre-configured demo file stays exactly as it is.)
 
 ### Step 3 — Run the app (one command)
 
@@ -151,7 +177,7 @@ These examples show recent returned eBird reports only; they do not guarantee a 
 
 - **Frontend can't connect to the backend** — Make sure the backend is running by visiting http://localhost:5000/api/health — you should see `{"status":"ok",...}`. Check that `client/.env` contains `VITE_API_BASE_URL=http://localhost:5000`. Restart `npm run dev` after changing any `.env` file.
 
-- **"The eBird API key is not configured"** — You haven't added a valid `EBIRD_API_KEY` to `server/.env`. Get a free key at [ebird.org/api/keygen](https://ebird.org/api/keygen), paste it in, and restart the backend.
+- **"The eBird API key is not configured"** — You haven't added a valid `EBIRD_API_KEY` to `server/.env`. Get a free key/token via the eBird **Data Access** page ([ebird.org/ebird/downloadMyData](https://ebird.org/ebird/downloadMyData) → **"eBird API"** section → **"Request access"**), paste it into `server/.env`, and restart the backend.
 
 - **Ask BirdSights says it's "not configured"** — The `OPENAI_API_KEY` is missing in `server/.env`. Ask BirdSights is optional — add a key to enable it, or keep using standard search and Explore, which don't need it.
 
@@ -410,24 +436,30 @@ BirdSightsProject/
 
 ## API Key Setup
 
-### eBird API key
+### eBird API key (required)
 
-1. Obtain your eBird API key at [https://ebird.org/api/keygen](https://ebird.org/api/keygen).
-2. Create `server/.env` (copy from `server/.env.example`).
-3. Replace `your_ebird_api_key_here` with your real key.
-4. For Render deployment: add `EBIRD_API_KEY` as a Render environment variable — **not** on Vercel.
+You need a free **eBird API key / access token** — obtained through the eBird **Data Access** page, not a one-click key generator:
+
+1. **Create or log into an eBird account** at [ebird.org](https://ebird.org).
+2. Open the **eBird Data Access** page: [https://ebird.org/ebird/downloadMyData](https://ebird.org/ebird/downloadMyData).
+3. Find the **"eBird API"** section and click **"Request access."**
+4. After access is granted, eBird provides your **API key / access token**.
+5. Create `server/.env` (copy from `server/.env.example`, or run `npm run setup`) and set `EBIRD_API_KEY` to that key/token.
+6. For Render deployment: add `EBIRD_API_KEY` as a Render environment variable — **not** on Vercel.
+
+> **EBD vs. API:** Do not confuse the **eBird Basic Dataset (EBD)** historical download with the **eBird API** access. Running BirdSights locally requires the **eBird API key / access token** — not the EBD download.
 
 If no key is configured, the backend returns:
 ```
 The eBird API key is not configured. Please add EBIRD_API_KEY to the backend environment variables.
 ```
 
-### OpenAI API key (Ask BirdSights)
+### OpenAI API key (optional — Ask BirdSights only)
 
-1. Create an API key in your OpenAI account.
+1. Create an API key from the **OpenAI Platform** dashboard ([platform.openai.com](https://platform.openai.com)).
 2. Add `OPENAI_API_KEY` to `server/.env` locally, and to Render environment variables for deployment.
 3. Optionally set `OPENAI_MODEL` (defaults to `gpt-4o-mini`).
-4. **The key must NOT be placed in any `client/` files or committed.**
+4. **The key must NOT be shown on screen, placed in any `client/` file, or committed to GitHub.**
 
 Without the key, Ask BirdSights returns a friendly "not configured" message and every other feature keeps working.
 
