@@ -330,6 +330,8 @@ The results page interprets recent returned eBird activity for the searched bird
 BirdSightsProject/
   .gitignore
   README.md
+  package.json          # root one-command runner (install:all, setup, dev, build)
+  package-lock.json
   client/
     package.json
     index.html
@@ -394,6 +396,13 @@ BirdSightsProject/
       normalizeObservation.js
       sortReports.js
       validateSearchParams.js
+  scripts/
+    setup-env.js          # creates local .env files from the .env.example templates
+  docs/
+    testing-matrix.md
+    testing-results.md
+    images/
+      ebird-api-request-access.jpg
 ```
 
 ---
@@ -513,7 +522,25 @@ Navigate to [http://localhost:5173](http://localhost:5173) in your browser.
 
 ## How to Run
 
-### Backend
+### Recommended one-command method
+
+From the **project root**:
+
+```bash
+npm run dev
+```
+
+This starts both the backend and frontend together:
+- **Backend:** http://localhost:5000
+- **Frontend:** http://localhost:5173
+
+Then open [http://localhost:5173](http://localhost:5173). Press **Ctrl + C** to stop both.
+
+### Manual method (fallback — run each part separately)
+
+If you prefer to run the two parts in their own terminals:
+
+**Backend:**
 
 ```bash
 cd server
@@ -521,7 +548,7 @@ npm start          # production
 npm run dev        # development (auto-restart on file changes, Node 18+)
 ```
 
-### Frontend
+**Frontend:**
 
 ```bash
 cd client
