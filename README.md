@@ -14,7 +14,12 @@ BirdSights is **not a replacement for eBird**. It is a lightweight discovery lay
 
 ## Quick Start (Beginner Guide)
 
-New here? This is the fastest way to run BirdSights on your own computer. First install **Node.js 18 or newer** from [nodejs.org](https://nodejs.org) (this also installs `npm`). You can confirm it worked by running `node -v` in a terminal.
+New here? This is the fastest way to run BirdSights on your own computer. You'll need two free tools installed first:
+
+- **Node.js 18 or newer** from [nodejs.org](https://nodejs.org) (this also installs `npm`). Confirm it with `node -v`.
+- **Git** from [git-scm.com](https://git-scm.com/download/win) (Git for Windows) — needed for the `git clone` command below. Confirm it with `git --version`.
+
+> **New to this?** If the `git clone` command below fails with **"git is not recognized"**, Git isn't installed yet. Install **Git for Windows** from [git-scm.com](https://git-scm.com/download/win), **restart PowerShell**, confirm it with `git --version`, then rerun the `git clone` command.
 
 ### Step 1 — Get the code, install everything, and create your config files
 
@@ -173,6 +178,8 @@ These examples show recent returned eBird reports only; they do not guarantee a 
 ---
 
 ## Troubleshooting (Beginner)
+
+- **`git` is not recognized** (e.g., *"git is not recognized as the name of a cmdlet..."* when running `git clone`) — Git isn't installed. Install **Git for Windows** from [git-scm.com/download/win](https://git-scm.com/download/win), **restart PowerShell** (close and reopen it), confirm the install with `git --version`, then rerun the `git clone` command.
 
 - **`npm` command not found** — Node.js isn't installed, or the terminal needs restarting. Install Node.js 18+ from [nodejs.org](https://nodejs.org), close and reopen your terminal, then run `node -v` to confirm.
 
