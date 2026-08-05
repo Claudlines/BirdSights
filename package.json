@@ -1,0 +1,20 @@
+{
+  "name": "birdsights",
+  "version": "1.0.0",
+  "private": true,
+  "description": "BirdSights root helper — install and run the Node/Express backend and React/Vite frontend together with one command. The two-terminal method (server and client separately) still works.",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "install:all": "npm install --prefix server && npm install --prefix client",
+    "dev": "concurrently -n SERVER,CLIENT -c green,cyan \"cd server && npm start\" \"cd client && npm run dev\"",
+    "start": "npm run dev",
+    "start:server": "cd server && npm start",
+    "start:client": "cd client && npm run dev",
+    "build": "cd client && npm run build"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}

@@ -12,6 +12,183 @@ BirdSights is **not a replacement for eBird**. It is a lightweight discovery lay
 
 ---
 
+## Quick Start (Beginner Guide)
+
+New here? This is the fastest way to run BirdSights on your own computer. First install **Node.js 18 or newer** from [nodejs.org](https://nodejs.org) (this also installs `npm`). You can confirm it worked by running `node -v` in a terminal.
+
+### Step 1 — Get the code and install everything
+
+```bash
+git clone https://github.com/Claudlines/BirdSights.git
+cd BirdSights
+npm install
+npm run install:all
+```
+
+- `npm install` sets up the one-command runner (`concurrently`) in the project root.
+- `npm run install:all` installs the backend **and** frontend dependencies for you.
+
+### Step 2 — Create your environment files (required before running)
+
+BirdSights needs two small config files that hold settings and your API keys. For security these are **not** included in the download — you create them yourself. They stay on your computer and are ignored by Git.
+
+> On Windows **Command Prompt**, use `copy` instead of `cp`. **PowerShell** and **Git Bash** accept `cp`.
+
+**Backend — `server/.env`:**
+
+Copy the example file, then edit it:
+
+```bash
+cp server/.env.example server/.env
+```
+
+Open `server/.env` and replace the `your_..._here` placeholders with your own keys. It should look like this:
+
+```
+PORT=5000
+CLIENT_ORIGIN=http://localhost:5173
+NOMINATIM_USER_AGENT=BirdSights/1.0 student-capstone-project
+EBIRD_API_KEY=your_ebird_api_key_here
+OPENAI_API_KEY=your_openai_api_key_here
+OPENAI_MODEL=gpt-4o-mini
+ASK_RATE_LIMIT_MAX=20
+ASK_RATE_LIMIT_WINDOW_MINUTES=15
+DATA_RATE_LIMIT_MAX=100
+DATA_RATE_LIMIT_WINDOW_MINUTES=15
+```
+
+- Get a free **eBird API key** at [ebird.org/api/keygen](https://ebird.org/api/keygen) — required for bird search.
+- `OPENAI_API_KEY` is **optional** — it only powers Ask BirdSights. Without it, every other feature still works.
+- The four `RATE_LIMIT` lines are **optional**; if you leave them out, the defaults shown above are used automatically.
+
+**Frontend — `client/.env`:**
+
+Copy the example, or create `client/.env` with this one line:
+
+```bash
+cp client/.env.example client/.env
+```
+
+```
+VITE_API_BASE_URL=http://localhost:5000
+```
+
+This tells the frontend where to reach your local backend. No changes are needed for local development.
+
+### Step 3 — Run the app (one command)
+
+From the project root (the `BirdSights` folder):
+
+```bash
+npm run dev
+```
+
+Then open **[http://localhost:5173](http://localhost:5173)** in your browser.
+
+This single command starts both parts at once:
+- **Backend (API):** http://localhost:5000
+- **Frontend (website):** http://localhost:5173
+
+To stop the app, click the terminal and press **Ctrl + C**.
+
+### Fallback — the two-terminal method
+
+If you prefer to run each part in its own window (or the one-command method gives you trouble), open **two terminals**.
+
+**Terminal 1 — backend:**
+```bash
+cd server
+npm start
+```
+
+**Terminal 2 — frontend:**
+```bash
+cd client
+npm run dev
+```
+
+Then open http://localhost:5173. This is the original method and still works exactly the same.
+
+---
+
+## How to Use BirdSights
+
+Once the app is open at http://localhost:5173, here's what you can do. Everything BirdSights shows is based on **recent eBird reports** and **returned report locations** — it tells you where a bird was **reported nearby** recently. It does **not** guarantee the bird is currently present.
+
+- **Search for a specific bird** — In the search card, start typing a bird name (e.g., *Blue Jay*) and pick it from the suggestions. Enter a location (city, ZIP code, park, or address), choose a radius (5–50 km) and a timeframe (7, 14, or 30 days), then click **Find Recent Reports**. You'll see recent returned report locations on the map and in a list.
+
+- **Explore Birds Near You** — Don't know any bird names? Enter a location (or use current location) and click **Show birds near me**. BirdSights lists up to 10 birds recently reported nearby, grouped into beginner-friendly categories (frequently, occasionally, notable, or few recent reports). Click **Search this bird** on any card to see it on the map.
+
+- **Ask BirdSights** — Type a plain-English question (e.g., *"Have there been any Barn Owls in ZIP code 10468 recently?"*). The assistant interprets your question and answers using recent eBird data. It never invents sightings.
+
+- **Save a search** — On the results page, click **Save Search** to keep it. Saved searches appear in the **Saved Searches** panel on the landing page, where you can rerun or delete them. They are stored **locally in your browser only**.
+
+- **Read the map pins** — Each pin marks a **returned report location**. Click a pin (or a result card) to see details in the Selected Report panel. The blue pin is the location you have selected.
+
+- **Understand freshness colors** — Pin color shows **how old the returned report is**, not how likely the bird is to be present:
+  - 🟢 **Green** — Fresh report (0–7 days old)
+  - 🟡 **Amber** — Recent report (8–14 days old)
+  - 🔴 **Red** — Older report (15+ days old)
+  - 🔵 **Blue** — Your selected location
+
+- **Use current location** — Click **📍 Use My Current Location** to search around you. Your browser will ask permission. If you deny it (or it is unavailable), you can still type a location manually.
+
+- **Understand "Pending" image placeholders** — BirdSights includes curated photos for a starter set of birds. Birds without a curated image show an **"Image pending" / "Pending"** placeholder instead. This is normal and does not affect the report data.
+
+---
+
+## Test Examples to Try
+
+Good first searches and questions to confirm everything works. Results come from live eBird data and will change over time.
+
+**Standard search:**
+- **Blue Jay** near `19153`, radius **25 km**, timeframe **30 days**
+- **Northern Cardinal** near `19153`
+- **American Robin** near **New York City**, radius **50 km**, timeframe **30 days** (a dense area — you may see the large-result notice)
+
+**Ask BirdSights:**
+- *"Have there been any Barn Owls in ZIP code 10468 recently?"*
+- *"I don't know any birds. What birds are reported near me?"*
+
+**Broad-location safety test:**
+- Enter **Pennsylvania** as a location. BirdSights should **ask you for a more specific place** (a city, ZIP code, park, or address) instead of running a misleading single-point search. **New Jersey**, **USA**, and **Canada** behave the same way.
+
+These examples show recent returned eBird reports only; they do not guarantee a bird is present, and they do not measure true abundance or true rarity.
+
+---
+
+## Troubleshooting (Beginner)
+
+- **`npm` command not found** — Node.js isn't installed, or the terminal needs restarting. Install Node.js 18+ from [nodejs.org](https://nodejs.org), close and reopen your terminal, then run `node -v` to confirm.
+
+- **Port 5000 already in use** — Another program (often a leftover BirdSights backend) is using it. On **Windows**: `netstat -ano | findstr :5000` to find the process ID, then `taskkill /PID <that-id> /F`. On **Mac/Linux**: `lsof -i :5000` then `kill <pid>`. Then run `npm run dev` again.
+
+- **Frontend can't connect to the backend** — Make sure the backend is running by visiting http://localhost:5000/api/health — you should see `{"status":"ok",...}`. Check that `client/.env` contains `VITE_API_BASE_URL=http://localhost:5000`. Restart `npm run dev` after changing any `.env` file.
+
+- **"The eBird API key is not configured"** — You haven't added a valid `EBIRD_API_KEY` to `server/.env`. Get a free key at [ebird.org/api/keygen](https://ebird.org/api/keygen), paste it in, and restart the backend.
+
+- **Ask BirdSights says it's "not configured"** — The `OPENAI_API_KEY` is missing in `server/.env`. Ask BirdSights is optional — add a key to enable it, or keep using standard search and Explore, which don't need it.
+
+- **Current location permission denied** — Your browser blocked location access. BirdSights shows a friendly message and you can type a location manually instead. To re-enable, allow location access for the site in your browser's address-bar site settings.
+
+- **Saved searches don't appear** — Saved searches live in your browser's local storage. They won't appear if you switch browsers, use a private/incognito window, or the browser blocks storage. Save again in your normal browser window.
+
+- **eBird or OpenAI seems slow or returns an error** — These are public external services and can be briefly unavailable or rate-limited. BirdSights shows a friendly message; wait a moment and try again.
+
+- **Stopping the app** — Click the terminal running `npm run dev` and press **Ctrl + C**. On Windows, if port 5000 stays busy afterward, free it using the "Port 5000 already in use" steps above before restarting.
+
+---
+
+## Security Notes
+
+- **Never commit your `.env` files.** They hold your private keys. Both `server/.env` and `client/.env` are already listed in `.gitignore`, so Git ignores them by default — keep it that way.
+- **Never put your OpenAI or eBird key in the frontend.** API keys belong only in `server/.env` (backend). Anything placed in `client/` is shipped to the browser and would expose the key.
+- **Local vs. production keys:** keep keys in `server/.env` for local development, and set them as **Render environment variables** for the deployed backend. Do **not** add them to Vercel (the frontend host).
+- **Only `.env.example` files are tracked** in Git, and they contain placeholder names only (like `your_ebird_api_key_here`) — never real keys.
+- **Rate limiting is built in:** Ask BirdSights (`/api/ask`) and the data endpoints (`/api/search`, `/api/explore`) are rate-limited per IP, so the app degrades gracefully with a friendly message and the paid OpenAI endpoint and shared eBird quota are protected.
+
+---
+
 ## Project Overview
 
 BirdSights answers questions like:
@@ -232,6 +409,8 @@ BirdSightsProject/
 | `OPENAI_MODEL`                   | OpenAI model name (optional; defaults to `gpt-4o-mini`)              |
 | `ASK_RATE_LIMIT_WINDOW_MINUTES`  | Ask BirdSights rate-limit window (optional; default 15)              |
 | `ASK_RATE_LIMIT_MAX`             | Max Ask BirdSights requests per window per IP (optional; default 20) |
+| `DATA_RATE_LIMIT_WINDOW_MINUTES` | Search/Explore rate-limit window (optional; default 15)             |
+| `DATA_RATE_LIMIT_MAX`            | Max `/api/search` + `/api/explore` requests per window per IP (optional; default 100) |
 
 ### Frontend (`client/.env`)
 
@@ -270,11 +449,13 @@ Without the key, Ask BirdSights returns a friendly "not configured" message and 
 
 ## Local Setup Instructions
 
+> **New user?** See [Quick Start (Beginner Guide)](#quick-start-beginner-guide) near the top for the fastest one-command setup. This section explains each step in more detail and is useful for deployment.
+
 ### 1. Clone the repository
 
 ```bash
-git clone <your-repo-url>
-cd BirdSightsProject
+git clone https://github.com/Claudlines/BirdSights.git
+cd BirdSights
 ```
 
 ### 2. Backend setup
@@ -418,7 +599,8 @@ Checklist URL: `https://ebird.org/checklist/{subId}` (only when `subId` is prese
    - `NOMINATIM_USER_AGENT` = `BirdSights/1.0 student-capstone-project`
    - `OPENAI_API_KEY` = your OpenAI API key (for Ask BirdSights)
    - `OPENAI_MODEL` = optional model override
-   - `ASK_RATE_LIMIT_WINDOW_MINUTES` / `ASK_RATE_LIMIT_MAX` = optional rate-limit overrides
+   - `ASK_RATE_LIMIT_WINDOW_MINUTES` / `ASK_RATE_LIMIT_MAX` = optional Ask BirdSights rate-limit overrides
+   - `DATA_RATE_LIMIT_WINDOW_MINUTES` / `DATA_RATE_LIMIT_MAX` = optional Search/Explore rate-limit overrides
 6. Do NOT set `PORT` — Render provides it automatically via `process.env.PORT`.
 
 The backend sets `trust proxy` for Render so the rate limiter sees real client IPs.
